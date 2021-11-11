@@ -61,8 +61,6 @@ alias update-fc='sudo fc-cache -fv'
 #hardware info --short
 alias hw="hwinfo --short"
 
-alias mirrorx="sudo reflector --age 6 --latest 20  --fastest 20 --threads 5 --sort rate --protocol https --save /etc/pacman.d/mirrorlist"
-
 #youtube-dl
 alias yta-aac="youtube-dl --extract-audio --audio-format aac "
 alias yta-best="youtube-dl --extract-audio --audio-format best "
