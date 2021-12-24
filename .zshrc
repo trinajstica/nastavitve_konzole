@@ -46,7 +46,7 @@ alias merge="xrdb -merge ~/.Xresources"
 # Aliases for software managment
 # pacman or pm
 alias pacman='sudo pacman --color auto'
-alias update='sudo pacman -Syyu'
+alias update='sudo pamac update -a'
 
 #ps
 alias psa="ps auxf"
@@ -96,3 +96,6 @@ ex ()
 
 neofetch
 
+#runDesktop () {
+#  eval "$(awk -F= '$1=="Exec"{$1=""; print}' "$1")"
+#}
