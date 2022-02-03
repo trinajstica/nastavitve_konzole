@@ -94,8 +94,7 @@ ex ()
   fi
 }
 
-neofetch
+alias mirrorx='sudo pacman-mirrors --fasttrack 5 && sudo pacman -Syyu'
+alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System Volume Information" --prune > katalog.txt && echo "Datoteka katalog.txt je pripravljena."'
 
-#runDesktop () {
-#  eval "$(awk -F= '$1=="Exec"{$1=""; print}' "$1")"
-#}
+neofetch
