@@ -98,3 +98,7 @@ alias mirrorx='sudo pacman-mirrors --fasttrack 5 && sudo pacman -Syyu'
 alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System Volume Information" --prune > katalog.txt && echo "Datoteka katalog.txt je pripravljena."'
 alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
 neofetch
+
+alias wanip='dig @resolver4.opendns.com myip.opendns.com +short'
+alias wanip4='dig @resolver4.opendns.com myip.opendns.com +short -4'
+alias wanip6='dig @resolver1.ipv6-sandbox.opendns.com AAAA myip.opendns.com +short -6'
