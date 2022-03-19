@@ -105,3 +105,4 @@ alias wanip6='dig @resolver1.ipv6-sandbox.opendns.com AAAA myip.opendns.com +sho
 
 alias top='htop'
 alias updatedb='sudo updatedb'
+alias reboot='sudo reboot.sh'
