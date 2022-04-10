@@ -94,7 +94,7 @@ ex ()
   fi
 }
 
-alias mirrorx='sudo pacman-mirrors --fasttrack 10 && sudo pacman -Syyu'
+alias mirrorx='sudo pacman-mirrors --fasttrack && sudo pacman -Syyu'
 alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System Volume Information" --prune > katalog.txt && echo "Datoteka katalog.txt je pripravljena."'
 alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
 neofetch
