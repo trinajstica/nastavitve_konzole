@@ -46,7 +46,7 @@ alias merge="xrdb -merge ~/.Xresources"
 # Aliases for software managment
 # pacman or pm
 alias pacman='sudo pacman --color auto'
-alias update='sudo pamac update -a'
+alias update='pamac update -a'
 
 #ps
 alias psa="ps auxf"
