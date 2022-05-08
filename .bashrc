@@ -185,6 +185,7 @@ alias wanip6='dig @resolver1.ipv6-sandbox.opendns.com AAAA myip.opendns.com +sho
 alias apt='sudo apt'
 alias cleanup='apt autoremove && apt autoclean && apt clean'
 alias upgrade='apt update && apt full-upgrade -y'
+alias update='upgrade'
 
 alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System Volume Information" --prune > katalog.txt && echo "Datoteka katalog.txt je pripravljena."'
 alias makeiso='genisoimage -iso-level 3 -o makeiso.iso .'
@@ -197,4 +198,10 @@ alias reboot='sudo reboot.sh'
 
 alias tar='tar -cvzf'
 alias untar='tar -xvzf'
+
+alias fstrim='sudo fstrim -a -v'
+
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
 
