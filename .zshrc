@@ -46,7 +46,7 @@ alias merge="xrdb -merge ~/.Xresources"
 # Aliases for software managment
 # pacman or pm
 alias pacman='sudo pacman --color auto'
-alias update='pamac update -a'
+alias update='sudo pacman -Syyuu && pamac update -a'
 
 #ps
 alias psa="ps auxf"
@@ -97,7 +97,6 @@ ex ()
 alias mirrorx='sudo pacman-mirrors -c Austria,Belgium,Bulgaria,Czech,Denmark,Estonia,Finland,France,Germany,Greece,Hungary,Iceland,Italy,Netherlands,Norway,Poland,Portugal,Spain,Sweden,Switzerland,United_Kingdom && sudo pacman -Syyu'
 alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System Volume Information" --prune > katalog.txt && echo "Datoteka katalog.txt je pripravljena."'
 alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
-neofetch
 
 alias wanip='dig @resolver4.opendns.com myip.opendns.com +short'
 alias wanip4='dig @resolver4.opendns.com myip.opendns.com +short -4'
@@ -111,3 +110,8 @@ alias reboot='sudo reboot.sh'
 alias tar='tar -cvzf'
 alias untar='tar -xvzf'
 alias arhiv='sudo 7zr u -up0q3r2x2y2z1w2 arhiv.7z $1'
+
+alias testing='sudo pacman-mirrors -a -B testing && sudo pacman -Syyuu'
+alias stable='sudo pacman-mirrors -a -B stable && sudo pacman -Syyuu'
+
+neofetch
