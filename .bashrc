@@ -89,6 +89,6 @@ alias updd='dnf system-upgrade reboot'
 alias cleanup='dnf clean all'
 alias fpm='sudo fpm'
 alias deb2rpm='fpm --no-depends -s deb -rpm $1'
+alias update-grub='sudo grub2-mkconfig -o /etc/grub2.cfg'
 neofetch
 #### barko END
-
