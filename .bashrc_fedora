@@ -91,5 +91,7 @@ alias fpm='sudo fpm'
 alias deb2rpm='fpm --no-depends -s deb -rpm $1'
 alias update-grub='sudo grub2-mkconfig -o /etc/grub2.cfg'
 alias cpy='sudo rsync -rtvpl'
+alias update-grub='sudo grub2-mkconfig -o /etc/grub2.cfg'
+alias edit-grub='sudo nano /etc/default/grub'
 neofetch
 #### barko END
