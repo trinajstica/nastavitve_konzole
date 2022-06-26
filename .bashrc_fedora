@@ -106,6 +106,9 @@ alias jedro4='sudo grubby --set-default-index=4'
 # odstrani vsa neuporabljana jedra
 alias odstranijedra='dnf remove $(dnf repoquery --installonly --latest-limit=-2 -q)'
 alias session="loginctl show-session $(awk '/tty/ {print $1}' <(loginctl)) -p Type | awk -F= '{print $2}'"
+alias nopassword='sudo usermod -p "" $USER'
+alias setpassword='sudo passwd $USER'
+
 neofetch
 
 #### barko END
