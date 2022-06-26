@@ -77,12 +77,11 @@ alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System V
 alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
 alias iotop='sudo iotop'
 alias updatedb='sudo updatedb'
-alias reboot='sudo reboot.sh'
 alias tar='tar -cvzf'
 alias untar='tar -xvzf'
 alias arhiv='sudo 7z u -up0q3r2x2y2z1w2 arhiv.7z $1'
 alias dnf='sudo dnf'
-alias update='dnf upgrade --refresh -y --exclude=kernel*'
+alias update='dnf upgrade --refresh -y'
 alias upgrade='update'
 alias upg='upgrade'
 alias upd='dnf system-upgrade download --allowerasing --release=%1'
@@ -94,9 +93,19 @@ alias update-grub='sudo grub2-mkconfig -o /etc/grub2.cfg'
 alias cpy='sudo rsync -rtvpl'
 alias update-grub='sudo grub2-mkconfig -o /etc/grub2.cfg'
 alias edit-grub='sudo nano /etc/default/grub'
-alias kernels='sudo grubby --info=ALL | grep -E "^kernel|^index"'
-alias setkernel='sudo grubby --set-default-index=$1'
-
+# spisek vseh jeder
+alias jedra='sudo grubby --info=ALL | grep -E "^kernel|^index"'
+alias kernels=jedra
+alias jedro='uname -r'
+alias kernel=jedro
+alias jedro0='sudo grubby --set-default-index=0'
+alias jedro1='sudo grubby --set-default-index=1'
+alias jedro2='sudo grubby --set-default-index=2'
+alias jedro3='sudo grubby --set-default-index=3'
+alias jedro4='sudo grubby --set-default-index=4'
+# odstrani vsa neuporabljana jedra
+alias odstranijedra='dnf remove $(dnf repoquery --installonly --latest-limit=-2 -q)'
+alias session="loginctl show-session $(awk '/tty/ {print $1}' <(loginctl)) -p Type | awk -F= '{print $2}'"
 neofetch
 
 #### barko END
