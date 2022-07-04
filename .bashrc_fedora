@@ -1,5 +1,5 @@
 # .bashrc
-PS1='${PWD#"${PWD%/*/*}/"} \$ '
+# PS1='${PWD#"${PWD%/*/*}/"} \$ '
 # Source global definitions
 if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
@@ -40,7 +40,7 @@ alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias df='df -h'
-alias free="free -mt"
+alias free="free -mtwh"
 alias wget="wget -c"
 alias userlist="cut -d: -f1 /etc/passwd"
 alias merge="xrdb -merge ~/.Xresources"
@@ -75,7 +75,7 @@ ex ()
 }
 alias katalog='echo "Iščem..." && tree -I "Android" -I "LOST.DIR" -I "System Volume Information" --prune > katalog.txt && echo "Datoteka katalog.txt je pripravljena."'
 alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
-alias iotop='sudo iotop'
+alias iotop='sudo iotop -o'
 alias updatedb='sudo updatedb'
 alias tar='tar -cvzf'
 alias untar='tar -xvzf'
@@ -108,6 +108,9 @@ alias odstranijedra='dnf remove $(dnf repoquery --installonly --latest-limit=-2 
 alias session="loginctl show-session $(awk '/tty/ {print $1}' <(loginctl)) -p Type | awk -F= '{print $2}'"
 alias nopassword='sudo usermod -p "" $USER'
 alias setpassword='sudo passwd $USER'
+alias diskspeedtest='sync; dd if=/dev/zero of=diskspeedtest bs=1M count=1024 conv=fdatasync; rm -f diskspeedtest'
+alias resetfonts='gsettings reset org.gnome.desktop.interface font-name && gsettings reset org.gnome.desktop.interface document-font-name && gsettings reset org.gnome.desktop.interface monospace-font-name && gsettings reset org.gnome.desktop.wm.preferences titlebar-font && gsettings reset org.gnome.desktop.interface text-scaling-factor'
+
 
 neofetch
 
