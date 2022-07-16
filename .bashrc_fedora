@@ -112,6 +112,7 @@ alias diskspeedtest='sync; dd if=/dev/zero of=diskspeedtest bs=1M count=1024 con
 alias resetfonts='gsettings reset org.gnome.desktop.interface font-name && gsettings reset org.gnome.desktop.interface document-font-name && gsettings reset org.gnome.desktop.interface monospace-font-name && gsettings reset org.gnome.desktop.wm.preferences titlebar-font && gsettings reset org.gnome.desktop.interface text-scaling-factor'
 alias nvidia-reinstall='dnf remove akmod-nvidia xorg-x11-drv-nvidia-cuda -y && dnf install akmod-nvidia xorg-x11-drv-nvidia-cuda -y'
 alias uam='sudo screen -r uam'
+alias ydl='youtube-dl -x --audio-format mp3'
 
 neofetch
 
