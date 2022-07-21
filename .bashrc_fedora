@@ -84,7 +84,7 @@ alias dnf='sudo dnf'
 alias update='dnf upgrade --refresh -y'
 alias upgrade='update'
 alias upg='upgrade'
-alias upd='dnf system-upgrade download --allowerasing --release=%1'
+alias upd="dnf system-upgrade download --releasever=$1 --allowerasing"
 alias updd='dnf system-upgrade reboot'
 alias cleanup='sudo package-cleanup --quiet --leaves | sudo xargs dnf remove -y'
 alias fpm='sudo fpm'
