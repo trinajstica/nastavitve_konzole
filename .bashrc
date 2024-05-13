@@ -41,12 +41,13 @@ alias fixaddtog1="if grep -q docker /etc/group; then sudo usermod -a -G docker $
 alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
 alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
-alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && fixmaxsound && fixwait && fixaddtog1 && fixaddtog2 && fixaddtog3 && fixaddtog4 && fixlaptoplid"
+alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/* /usr/share/icons/"
+alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && fixmaxsound && fixwait && fixaddtog1 && fixaddtog2 && fixaddtog3 && fixaddtog4 && fixlaptoplid && fixyasticons"
 # fixing end
 #fedora
-alias dnf="sudo dnf"
-alias upg="dnf upgrade -b --allowerasing -y --refresh && flatpak update -y"
-alias cleanup="dnf autoremove -y  && dnf clean all"
+#alias dnf="sudo dnf"
+#alias upg="dnf upgrade -b --allowerasing -y --refresh && flatpak update -y"
+#alias cleanup="dnf autoremove -y  && dnf clean all"
 #ubuntu
 #alias apt="sudo apt"
 #alias apts="apt search"
@@ -57,9 +58,9 @@ alias cleanup="dnf autoremove -y  && dnf clean all"
 #alias upg="apt update && apt full-upgrade -y && flatpak update -y && sudo flatpak update -y && cleanup"
 #alias dpkg="sudo dpkg"
 #opensuse
-#alias z="sudo zypper"
-#alias upg="z ref && z dup --no-confirm --allow-vendor-change && flatpak -y update"
-#alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
+alias z="sudo zypper"
+alias upg="z ref && z dup --no-confirm --allow-vendor-change && flatpak -y update"
+alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
 #
 # zaradi hitrosti izključim statistiko nameščenih paketov
 neofetch --disable packages
