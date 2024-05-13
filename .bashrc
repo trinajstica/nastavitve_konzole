@@ -1,3 +1,4 @@
+###
 if [ -d "$HOME/bin" ]; then
     PATH="$HOME/bin:$PATH"
 fi
@@ -66,3 +67,4 @@ alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && 
 alias pacman="sudo pacman"
 alias unlck="sudo rm /var/lib/pacman/db.lck"
 neofetch --disable packages
+###
