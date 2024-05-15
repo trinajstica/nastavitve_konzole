@@ -9,8 +9,7 @@ export EDITOR=nano
 export VISUAL=nano
 export PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 141)\]\w \[$(tput sgr0)\]\n> "
 #
-#alias kopiraj='function kopiraj_fun() { if [ "$#" -eq 2 ]; then echo -n "Ste prepričani, da želite nadaljevati? (D/N): "; read -r odgovor; if [ "${odgovor,,}" = "d" ]; then sudo rsync -a --info=progress2 --delete --exclude="lost+found" --exclude=".cache" "$1/" "$2/"; else echo "Operacija preklicana."; fi; else echo "Uporaba: kopiraj vir cilj"; fi; }; kopiraj_fun'
-alias kopiraj='kopiraj_fun() { if [ "$#" -eq 2 ]; then echo -n "Ste prepričani, da želite nadaljevati? (D/N): "; read -r odgovor; if [ "${odgovor:l}" = "d" ]; then sudo rsync -a --info=progress2 --delete --exclude="lost+found" --exclude=".cache" "$1/" "$2/"; else echo "Operacija preklicana."; fi; else echo "Uporaba: kopiraj vir cilj"; fi; }; kopiraj_fun'
+alias kopiraj='kopiraj_fun() { if [ "$#" -ge 2 ]; then echo -n "Ste prepričani, da želite nadaljevati? (D/N): "; read -r odgovor; if [ "${odgovor,,}" = "d" ]; then rsync -a --info=progress2 --delete "$@"; else echo "Operacija preklicana."; fi; else echo "Uporaba: kopiraj vir cilj [dodatni parametri rsync]"; fi; }; kopiraj_fun'
 alias top='htop'
 alias toutf8="vim --clean -E -s -c 'argdo set fileencoding=utf-8 nobomb | update' -c q -- *.srt"
 alias df='df -H'
@@ -60,11 +59,13 @@ alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && 
 #alias upg="apt update && apt full-upgrade -y && flatpak update -y && sudo flatpak update -y && cleanup"
 #alias dpkg="sudo dpkg"
 #opensuse
-#alias z="sudo zypper"
-#alias upg="z ref && z dup --no-confirm --allow-vendor-change && flatpak -y update"
-#alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
+alias z="sudo zypper"
+alias upg="z ref && z dup --no-confirm --allow-vendor-change && flatpak -y update"
+alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
 #manjaro
-alias pacman="sudo pacman"
-alias unlck="sudo rm /var/lib/pacman/db.lck"
+#alias pacman="sudo pacman"
+#alias unlck="sudo rm /var/lib/pacman/db.lck"
+#alias cleanup="pacman -Sc && pacman -Scc && pacman -Qdtq | pacman -Rns -"
+#alias upg="pacman -Syu && sudo flatpak update"
 neofetch --disable packages
 ###
