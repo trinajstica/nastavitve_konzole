@@ -1,15 +1,27 @@
-###
-if [ -d "$HOME/bin" ]; then
-    PATH="$HOME/bin:$PATH"
-fi
 # ostali aliasi
 test -s ~/.alias && . ~/.alias || true
+#
+kopiraj_fun() {
+    if [ "$#" -ge 2 ]; then
+        echo -n "Ste prepričani, da želite nadaljevati? (D/N): "
+        read -r odgovor
+        odgovor=$(echo "$odgovor" | tr '[:upper:]' '[:lower:]')
+        if [ "$odgovor" = "d" ]; then
+            sudo rsync -a --info=progress2 --delete "$@"
+        else
+            echo "Operacija preklicana."
+        fi
+    else
+        echo "Uporaba: kopiraj vir cilj [dodatni parametri rsync]"
+    fi
+}
+
+alias kopiraj='kopiraj_fun'
 #
 export EDITOR=nano
 export VISUAL=nano
 export PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 141)\]\w \[$(tput sgr0)\]\n> "
 #
-alias kopiraj='kopiraj_fun() { if [ "$#" -ge 2 ]; then echo -n "Ste prepričani, da želite nadaljevati? (D/N): "; read -r odgovor; if [ "${odgovor,,}" = "d" ]; then rsync -a --info=progress2 --delete "$@"; else echo "Operacija preklicana."; fi; else echo "Uporaba: kopiraj vir cilj [dodatni parametri rsync]"; fi; }; kopiraj_fun'
 alias top='htop'
 alias toutf8="vim --clean -E -s -c 'argdo set fileencoding=utf-8 nobomb | update' -c q -- *.srt"
 alias df='df -H'
@@ -31,7 +43,7 @@ alias db="distrobox"
 alias apkinstall="waydroid app install $1"
 #
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixloginrefresh='sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config'
+alias fixloginrefresh='sudo mkdir -p /var/lib/gdm/.config && sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config/monitors.xml'
 alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d && echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=/home/$USER/.icons/:ro && flatpak --user override --filesystem=/usr/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
@@ -60,12 +72,11 @@ alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && 
 #alias dpkg="sudo dpkg"
 #opensuse
 alias z="sudo zypper"
-alias upg="z ref && z dup --no-confirm --allow-vendor-change && flatpak -y update"
+#alias upg="sudo atomic-update dup && flatpak -y update"
 alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
 #manjaro
 #alias pacman="sudo pacman"
 #alias unlck="sudo rm /var/lib/pacman/db.lck"
 #alias cleanup="pacman -Sc && pacman -Scc && pacman -Qdtq | pacman -Rns -"
-#alias upg="pacman -Syu && sudo flatpak update"
+#alias upg="pacman -Syu --noconfirm && sudo flatpak -y update"
 neofetch --disable packages
-###
