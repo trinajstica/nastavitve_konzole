@@ -55,6 +55,7 @@ alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $US
 alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
 alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/* /usr/share/icons/"
+alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && fixmaxsound && fixwait && fixaddtog1 && fixaddtog2 && fixaddtog3 && fixaddtog4 && fixlaptoplid && fixyasticons"
 #
 #fedora
@@ -72,7 +73,7 @@ alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && 
 #alias dpkg="sudo dpkg"
 #opensuse
 alias z="sudo zypper"
-#alias upg="sudo atomic-update dup && flatpak -y update"
+alias upg="z dup && flatpak -y update"
 alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
 #manjaro
 #alias pacman="sudo pacman"
@@ -80,3 +81,4 @@ alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zyp
 #alias cleanup="pacman -Sc && pacman -Scc && pacman -Qdtq | pacman -Rns -"
 #alias upg="pacman -Syu --noconfirm && sudo flatpak -y update"
 neofetch --disable packages
+###
