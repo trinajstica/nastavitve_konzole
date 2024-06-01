@@ -43,42 +43,45 @@ alias db="distrobox"
 alias apkinstall="waydroid app install $1"
 #
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixloginrefresh='sudo mkdir -p /var/lib/gdm/.config && sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config/monitors.xml'
-alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d && echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
-alias fixflatpakicons='flatpak --user override --filesystem=/home/$USER/.icons/:ro && flatpak --user override --filesystem=/usr/share/icons/:ro'
+alias fixloginrefresh='sudo mkdir -p /var/lib/gdm/.config; sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config/monitors.xml'
+alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
+alias fixflatpakicons='flatpak --user override --filesystem=/home/$USER/.icons/:ro; flatpak --user override --filesystem=/usr/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
 alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
-alias fixlaptoplid="sudo mkdir -p '/etc/systemd/logind.conf.d' && echo -e \"[Login]\\nHandleLidSwitch=ignore\" | sudo tee '/etc/systemd/logind.conf.d/99-laptop-server.conf' > '/dev/null'"
+alias fixlaptoplid="sudo mkdir -p '/etc/systemd/logind.conf.d'; echo -e \"[Login]\\nHandleLidSwitch=ignore\" | sudo tee '/etc/systemd/logind.conf.d/99-laptop-server.conf' > '/dev/null'"
 alias fixaddtog1="if grep -q docker /etc/group; then sudo usermod -a -G docker $USER; else echo 'Skupina docker ne obstaja'; fi"
 alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
 alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
 alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/* /usr/share/icons/"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
-alias fixall="fixloginrefresh && fixwinesound && fixflatpakicons && fixicons && fixmaxsound && fixwait && fixaddtog1 && fixaddtog2 && fixaddtog3 && fixaddtog4 && fixlaptoplid && fixyasticons"
+alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
+alias fixall="fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixlaptoplid; fixyasticons"
+alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla MozillaThunderbird file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop"
 #
 #fedora
 #alias dnf="sudo dnf"
-#alias upg="dnf upgrade -b --allowerasing -y --refresh && flatpak update -y"
-#alias cleanup="dnf autoremove -y  && dnf clean all"
+#alias upg="dnf upgrade -b --allowerasing -y --refresh; flatpak update -y"
+#alias cleanup="dnf autoremove -y; dnf clean all"
 #ubuntu
 #alias apt="sudo apt"
 #alias apts="apt search"
 #alias apti="apt install"
 #alias aptr="apt remove"
 #alias aptu="apt update"
-#alias cleanup="apt clean && apt autoremove && apt autoclean"
-#alias upg="apt update && apt full-upgrade -y && flatpak update -y && sudo flatpak update -y && cleanup"
+#alias cleanup="apt clean; apt autoremove; apt autoclean"
+#alias upg="apt update; apt full-upgrade -y; flatpak update -y; sudo flatpak update -y; cleanup"
 #alias dpkg="sudo dpkg"
 #opensuse
 alias z="sudo zypper"
-alias upg="z dup && flatpak -y update"
-alias cleanup="sudo journalctl --vacuum-time=1d && sudo zypper clean && sudo zypper purge-kernels"
+alias zrm="z rm --clean-deps"
+alias upg="z ref; z dup; flatpak -y update"
+alias cleanup="sudo journalctl --vacuum-time=1d; sudo zypper clean; sudo zypper purge-kernels"
 #manjaro
 #alias pacman="sudo pacman"
 #alias unlck="sudo rm /var/lib/pacman/db.lck"
-#alias cleanup="pacman -Sc && pacman -Scc && pacman -Qdtq | pacman -Rns -"
-#alias upg="pacman -Syu --noconfirm && sudo flatpak -y update"
+#alias cleanup="pacman -Sc; pacman -Scc; pacman -Qdtq | pacman -Rns -"
+#alias upg="pacman -Syu --noconfirm; sudo flatpak -y update"
 neofetch --disable packages
 ###
