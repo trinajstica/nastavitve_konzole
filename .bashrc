@@ -57,8 +57,9 @@ alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemo
 alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/* /usr/share/icons/"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
-alias fixall="fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixlaptoplid; fixyasticons"
-alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla MozillaThunderbird file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop"
+alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
+alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixlaptoplid; fixyasticons"
+alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator"
 #
 #fedora
 #alias dnf="sudo dnf"
