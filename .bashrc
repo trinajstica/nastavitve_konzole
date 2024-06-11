@@ -1,3 +1,26 @@
+###
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+# User specific environment
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
+    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+fi
+export PATH
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+if [ -d ~/.bashrc.d ]; then
+    for rc in ~/.bashrc.d/*; do
+        if [ -f "$rc" ]; then
+            . "$rc"
+        fi
+    done
+fi
+unset rc
 # ostali aliasi
 test -s ~/.alias && . ~/.alias || true
 #
@@ -22,7 +45,7 @@ export EDITOR=nano
 export VISUAL=nano
 export PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 141)\]\w \[$(tput sgr0)\]\n> "
 #
-alias top='htop'
+alias top='btop'
 alias toutf8="vim --clean -E -s -c 'argdo set fileencoding=utf-8 nobomb | update' -c q -- *.srt"
 alias df='df -H'
 alias updatedb='sudo updatedb'
@@ -43,7 +66,8 @@ alias db="distrobox"
 alias apkinstall="waydroid app install $1"
 #
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixloginrefresh='sudo mkdir -p /var/lib/gdm/.config; sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config/monitors.xml'
+#alias fixloginrefresh='sudo mkdir -p /var/lib/gdm/.config; sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config/monitors.xml'
+alias fixloginrefresh="sudo cp --remove-destination ~/'.config/monitors.xml' ~gdm/'.config/monitors.xml' && sudo chown 'gdm':'gdm' ~gdm/'.config/monitors.xml'"
 alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=/home/$USER/.icons/:ro; flatpak --user override --filesystem=/usr/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
@@ -54,17 +78,19 @@ alias fixaddtog1="if grep -q docker /etc/group; then sudo usermod -a -G docker $
 alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
 alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
+alias fixaddtog5="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt $USER; else echo 'Skupina libvirt ne obstaja'; fi"
 alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/* /usr/share/icons/"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
-alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixlaptoplid; fixyasticons"
-alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator"
+alias fixpackagekit="sudo systemctl stop 'packagekit' && sudo zypper remove 'PackageKit' && sync && sudo zypper addlock 'PackageKit'"
+alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
+alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator btop libgthread-2_0-0 plocate"
 #
 #fedora
 #alias dnf="sudo dnf"
 #alias upg="dnf upgrade -b --allowerasing -y --refresh; flatpak update -y"
-#alias cleanup="dnf autoremove -y; dnf clean all"
+#alias cleanup="dnf autoremove; dnf clean all"
 #ubuntu
 #alias apt="sudo apt"
 #alias apts="apt search"
@@ -77,7 +103,7 @@ alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles
 #opensuse
 alias z="sudo zypper"
 alias zrm="z rm --clean-deps"
-alias upg="z ref; z dup; flatpak -y update"
+alias upg='sudo zypper refresh --services && sudo zypper dist-upgrade --details --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change && flatpak -y update'
 alias cleanup="sudo journalctl --vacuum-time=1d; sudo zypper clean; sudo zypper purge-kernels"
 #manjaro
 #alias pacman="sudo pacman"
