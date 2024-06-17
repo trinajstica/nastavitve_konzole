@@ -1,4 +1,3 @@
-###
 if [ -f /etc/bashrc ]; then
     . /etc/bashrc
 fi
@@ -87,10 +86,12 @@ alias fixpackagekit="sudo systemctl stop 'packagekit' && sudo zypper remove 'Pac
 alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator btop libgthread-2_0-0 plocate"
 #
+
 #fedora
 #alias dnf="sudo dnf"
 #alias upg="dnf upgrade -b --allowerasing -y --refresh; flatpak update -y"
 #alias cleanup="dnf autoremove; dnf clean all"
+
 #ubuntu
 #alias apt="sudo apt"
 #alias apts="apt search"
@@ -100,15 +101,19 @@ alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles
 #alias cleanup="apt clean; apt autoremove; apt autoclean"
 #alias upg="apt update; apt full-upgrade -y; flatpak update -y; sudo flatpak update -y; cleanup"
 #alias dpkg="sudo dpkg"
-#opensuse
-alias z="sudo zypper"
-alias zrm="z rm --clean-deps"
-alias upg='sudo zypper refresh --services && sudo zypper dist-upgrade --details --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change && flatpak -y update'
-alias cleanup="sudo journalctl --vacuum-time=1d; sudo zypper clean; sudo zypper purge-kernels"
+
 #manjaro
 #alias pacman="sudo pacman"
 #alias unlck="sudo rm /var/lib/pacman/db.lck"
 #alias cleanup="pacman -Sc; pacman -Scc; pacman -Qdtq | pacman -Rns -"
 #alias upg="pacman -Syu --noconfirm; sudo flatpak -y update"
+
+#opensuse
+alias z="sudo zypper"
+alias zrm="z rm --clean-deps"
+alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change; flatpak -y update'
+alias cleanup="sudo journalctl --vacuum-time=1d; sudo zypper clean; sudo zypper purge-kernels"
+
 neofetch --disable packages
-###
+alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
+alias xampp="sudo /opt/lampp/xampp"
