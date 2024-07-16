@@ -1,17 +1,15 @@
+# openSUSE Tumbleweed #
+#######################
+# .bashrc by BArko    #
+#######################
+#
 if [ -f /etc/bashrc ]; then
     . /etc/bashrc
 fi
-
-# User specific environment
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
     PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 fi
 export PATH
-
-# Uncomment the following line if you don't like systemctl's auto-paging feature:
-# export SYSTEMD_PAGER=
-
-# User specific aliases and functions
 if [ -d ~/.bashrc.d ]; then
     for rc in ~/.bashrc.d/*; do
         if [ -f "$rc" ]; then
@@ -20,6 +18,8 @@ if [ -d ~/.bashrc.d ]; then
     done
 fi
 unset rc
+###
+#
 # ostali aliasi
 test -s ~/.alias && . ~/.alias || true
 #
@@ -37,7 +37,6 @@ kopiraj_fun() {
         echo "Uporaba: kopiraj vir cilj [dodatni parametri rsync]"
     fi
 }
-
 alias kopiraj='kopiraj_fun'
 #
 export EDITOR=nano
@@ -63,9 +62,7 @@ alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/
 alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
 alias db="distrobox"
 alias apkinstall="waydroid app install $1"
-#
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-#alias fixloginrefresh='sudo mkdir -p /var/lib/gdm/.config; sudo cp /home/$USER/.config/monitors.xml /var/lib/gdm/.config/monitors.xml'
 alias fixloginrefresh="sudo cp --remove-destination ~/'.config/monitors.xml' ~gdm/'.config/monitors.xml' && sudo chown 'gdm':'gdm' ~gdm/'.config/monitors.xml'"
 alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=/home/$USER/.icons/:ro; flatpak --user override --filesystem=/usr/share/icons/:ro'
@@ -83,37 +80,18 @@ alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-la
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
 alias fixpackagekit="sudo systemctl stop 'packagekit' && sudo zypper remove 'PackageKit' && sync && sudo zypper addlock 'PackageKit'"
-alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator btop libgthread-2_0-0 plocate"
+alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 #
-
-#fedora
-#alias dnf="sudo dnf"
-#alias upg="dnf upgrade -b --allowerasing -y --refresh; flatpak update -y"
-#alias cleanup="dnf autoremove; dnf clean all"
-
-#ubuntu
-#alias apt="sudo apt"
-#alias apts="apt search"
-#alias apti="apt install"
-#alias aptr="apt remove"
-#alias aptu="apt update"
-#alias cleanup="apt clean; apt autoremove; apt autoclean"
-#alias upg="apt update; apt full-upgrade -y; flatpak update -y; sudo flatpak update -y; cleanup"
-#alias dpkg="sudo dpkg"
-
-#manjaro
-#alias pacman="sudo pacman"
-#alias unlck="sudo rm /var/lib/pacman/db.lck"
-#alias cleanup="pacman -Sc; pacman -Scc; pacman -Qdtq | pacman -Rns -"
-#alias upg="pacman -Syu --noconfirm; sudo flatpak -y update"
-
-#opensuse
+alias zypper="sudo zypper"
 alias z="sudo zypper"
 alias zrm="z rm --clean-deps"
-alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change; flatpak -y update'
+alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak -y update'
 alias cleanup="sudo journalctl --vacuum-time=1d; sudo zypper clean; sudo zypper purge-kernels"
-
-neofetch --disable packages
+alias zps="z ps -s"
+#
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
+alias snapper="sudo snapper"
+#
+neofetch --disable packages
