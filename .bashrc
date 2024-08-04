@@ -80,7 +80,7 @@ alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-la
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
 alias fixpackagekit="sudo systemctl stop 'packagekit' && sudo zypper remove 'PackageKit' && sync && sudo zypper addlock 'PackageKit'"
-alias myinstall="sudo zypper in gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator btop libgthread-2_0-0 plocate"
+alias myinstall="sudo zypper in -y gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator btop libgthread-2_0-0 plocate; opi -n codecs; opi -n brave; opi -n megasync; opi -n vivaldi; opi -n vscodium; opi -n mystiq"
 alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 #
 alias zypper="sudo zypper"
