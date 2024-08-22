@@ -1,1 +1,1 @@
-.bashrc za OpenSUSE Tumbleweed
+.bashrc za OpenSUSE Tumbleweed & Fedora
