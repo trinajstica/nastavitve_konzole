@@ -87,6 +87,7 @@ alias fixall="myinstall0; myinstall1; fixwindowbuttons; fixlocalhost; fixzram; f
 #
 alias dnf="sudo dnf"
 alias upg="dnf -y update --skip-broken --best --allowerasing;flatpak -y update"
+alias cleanup="dnf clean all;dnf autoremove"
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
