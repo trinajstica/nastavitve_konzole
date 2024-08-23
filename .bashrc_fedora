@@ -84,7 +84,7 @@ alias myinstall1="sudo dnf swap ffmpeg-free ffmpeg --allowerasing; sudo dnf in -
 alias fixall="myinstall0; myinstall1; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 #
 alias dnf="sudo dnf"
-alias upg="dnf -y update --skip-broken --best --allowerasing;flatpak -y update"
+alias upg="dnf -y update --skip-broken --best --allowerasing;sudo flatpak -y update"
 alias cleanup="dnf clean all;dnf autoremove"
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
