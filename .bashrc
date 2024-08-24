@@ -81,7 +81,7 @@ alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
 alias pkoff="sudo systemctl disable --now packagekit;sudo systemctl mask packagekit"
 alias pkon="sudo systemctl unmask packagekit; sudo systemctl enable --now packagekit"
-alias myinstall="sudo zypper in -y gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop gnome-calendar zram-generator btop libgthread-2_0-0 plocate; opi -n codecs; opi -n brave; opi -n megasync; opi -n vivaldi; opi -n vscodium; opi -n mystiq"
+alias myinstall="sudo zypper in -y sshpass gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop zram-generator btop libgthread-2_0-0 plocate; opi -n codecs; opi -n megasync; opi -n vscodium; opi -n mystiq"
 alias fixall="pkoff; myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 #
 alias zypper="sudo zypper"
