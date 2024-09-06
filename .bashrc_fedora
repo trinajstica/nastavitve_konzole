@@ -63,7 +63,7 @@ alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.
 alias db="distrobox"
 alias apkinstall="waydroid app install $1"
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixloginrefresh="sudo cp --remove-destination ~/'.config/monitors.xml' ~gdm/'.config/monitors.xml' && sudo chown 'gdm':'gdm' ~gdm/'.config/monitors.xml'"
+#alias fixloginrefresh="sudo cp --remove-destination ~/'.config/monitors.xml' ~gdm/'.config/monitors.xml' && sudo chown 'gdm':'gdm' ~gdm/'.config/monitors.xml'"
 alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=/home/$USER/.icons/:ro; flatpak --user override --filesystem=/usr/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
