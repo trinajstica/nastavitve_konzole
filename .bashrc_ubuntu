@@ -146,7 +146,9 @@ export VISUAL=nano
 export PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 141)\]\w \[$(tput sgr0)\]\n> "
 #
 alias top='btop'
-alias toutf8="vim --clean -E -s -c 'argdo set fileencoding=utf-8 nobomb | update' -c q -- *.srt"
+alias toutf8tmp='for file in *.srt; do encoding=$(enca -i "$file"); if [ "$encoding" != "UTF-8" ]; then iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp" && mv "${file}.tmp" "$file"; else echo "$file je že v UTF-8"; fi; done'
+alias removeitmp='for file in *.srt; do sed -i "s/<i>//g; s/<\/i>//g" "$file"; done'
+alias toutf8="toutf8tmp;removeitmp"
 alias df='df -H'
 alias updatedb='sudo updatedb'
 alias bios='sudo dmidecode -s bios-version'
