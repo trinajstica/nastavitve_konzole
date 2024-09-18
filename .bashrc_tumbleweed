@@ -91,7 +91,7 @@ alias fixall="myinstall; pkoff; fixwindowbuttons; fixlocalhost; fixzram; fixwine
 alias zypper="sudo zypper"
 alias z="sudo zypper"
 alias zrm="z rm --clean-deps"
-alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak -y update'
+alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; sudo flatpak -y update'
 alias cleanup="sudo journalctl --vacuum-time=1d; sudo zypper clean; sudo zypper purge-kernels"
 alias zps="z ps -s"
 #
