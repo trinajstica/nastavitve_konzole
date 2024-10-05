@@ -71,7 +71,6 @@ alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
 alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
 alias fixlaptoplid="sudo mkdir -p '/etc/systemd/logind.conf.d'; echo -e \"[Login]\\nHandleLidSwitch=ignore\" | sudo tee '/etc/systemd/logind.conf.d/99-laptop-server.conf' > '/dev/null'"
-alias fixaddtog1="if grep -q docker /etc/group; then sudo usermod -a -G docker $USER; else echo 'Skupina docker ne obstaja'; fi"
 alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
 alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
@@ -80,15 +79,14 @@ alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.in
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
-alias myinstall0="sudo dnf copr enable -y llamaret/mystiq; sudo dnf in -y gstreamer1-plugin-openh264 mozilla-openh264; sudo dnf in -y git dkms kernel-headers kernel-devel; sudo dnf group install -y 'C Development Tools and Libraries'; sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-\$(rpm -E %fedora).noarch.rpm; sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-\$(rpm -E %fedora).noarch.rpm; sudo dnf in -y gstreamer1-plugins-{bad-*,good-*,base} gstreamer1-plugin-openh264 gstreamer1-libav --exclude=gstreamer1-plugins-bad-free-devel; sudo dnf group upgrade -y --with-optional --allowerasing Multimedia; sudo dnf update -y @multimedia --setopt='install_weak_deps=False' --exclude=PackageKit-gstreamer-plugin; sudo dnf update -y @sound-and-video"
-alias myinstall1="sudo dnf in -y lame* --exclude=lame-devel; sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing; sudo dnf in -y deluge dconf-editor mystiq gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode gnome-boxes iotop htop gnome-calendar zram-generator btop plocate VirtualBox gnome-themes-extra"
-alias fixall="myinstall0; myinstall1; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
+alias myinstall0="sudo dnf in -y gstreamer1-plugin-openh264 mozilla-openh264; sudo dnf in -y git dkms kernel-headers kernel-devel; sudo dnf group install -y 'C Development Tools and Libraries'; sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-\$(rpm -E %fedora).noarch.rpm; sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-\$(rpm -E %fedora).noarch.rpm; sudo dnf in -y gstreamer1-plugins-{bad-*,good-*,base} gstreamer1-plugin-openh264 gstreamer1-libav --exclude=gstreamer1-plugins-bad-free-devel; sudo dnf group upgrade -y --with-optional --allowerasing Multimedia; sudo dnf update -y @multimedia --setopt='install_weak_deps=False' --exclude=PackageKit-gstreamer-plugin; sudo dnf update -y @sound-and-video"
+alias myinstall1="sudo dnf in -y lame* --exclude=lame-devel; sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing; sudo dnf in -y deluge dconf-editor gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller vlc neofetch gamemode gnome-boxes iotop htop gnome-calendar zram-generator plocate VirtualBox gnome-themes-extra"
+alias fixall="myinstall0; myinstall1; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5"
 #
 alias dnf="sudo dnf"
 alias upg="dnf -y update --skip-broken --best --allowerasing;sudo flatpak -y update"
-#alias cleanup="dnf clean all;dnf autoremove"
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
 #
-#neofetch --disable packages
+neofetch --disable packages
