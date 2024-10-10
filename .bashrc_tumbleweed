@@ -88,7 +88,7 @@ alias reboot='sudo reboot'
 alias iotop='sudo iotop'
 alias db='distrobox'
 alias ubuntu="db enter ubuntu"
-alias waydroid="distrobox enter --root waydroid"
+#alias waydroid="distrobox enter --root waydroid"
 #
 alias nopassword='sudo usermod -p "" $USER'
 alias setpassword='sudo passwd $USER'
