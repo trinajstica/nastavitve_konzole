@@ -132,7 +132,7 @@ alias fixall="fixzypper; myinstall; fixwindowbuttons; fixlocalhost; fixzram; fix
 alias zypper="sudo zypper"
 alias z="zypper"
 alias zrm="z rm --clean-deps"
-alias upg='z refresh --services; z dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; sudo flatpak -y update'
+alias upg='z refresh --services; z dist-upgrade --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak -y update; sudo flatpak -y update'
 alias cleanup="sudo journalctl --vacuum-time=1d; z clean; z purge-kernels"
 alias zps="z ps -s"
 alias zf="z se --provides"
