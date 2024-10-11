@@ -120,13 +120,14 @@ alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorit
 alias pkoff="sudo systemctl disable --now packagekit;sudo systemctl mask packagekit"
 alias pkon="sudo systemctl unmask packagekit; sudo systemctl enable --now packagekit"
 alias checkall="sudo zypper verify; sudo rpm --verify --all"
+alias fixzypper='sudo sed -i "/^# installRecommends = yes/s/^# installRecommends = yes/installRecommends = no/" /etc/zypp/zypper.conf'
 
 alias install_wifi='echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf && ([ -d /usr/src/rtl88x2bu-git ] && (cd /usr/src/rtl88x2bu-git && sudo git pull) || sudo git clone "https://github.com/RinCat/RTL88x2BU-Linux-Driver.git" /usr/src/rtl88x2bu-git) && sudo sed -i "s/PACKAGE_VERSION=\"@PKGVER@\"/PACKAGE_VERSION=\"git\"/g" /usr/src/rtl88x2bu-git/dkms.conf && sudo dkms add -m rtl88x2bu -v git && sudo dkms autoinstall --force'
 alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/src/rtl88x2bu-git && sudo rm /etc/modprobe.d/rtw8822bu.conf'
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
 
 alias myinstall="sudo zypper dup; sudo zypper in -t pattern devel_kernel; sudo zypper in --type pattern devel_basis; sudo zypper in dkms git-core; sudo systemctl enable --now dkms; sudo zypper in -y rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop zram-generator btop libgthread-2_0-0 plocate; sudo opi -n codecs; sudo opi -n megasync; sudo opi -n vscodium"
-alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
+alias fixall="fixzypper; myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
