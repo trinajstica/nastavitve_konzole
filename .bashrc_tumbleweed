@@ -102,7 +102,7 @@ alias gpt='function _chatgpt() {
       \"messages\": [
         {
           \"role\": \"system\",
-          \"content\": \"odgovori do 250 znakov v slovenščini izračune z python knjižnicami\"
+          \"content\": \"za računanje uporabi python knjižnice, za odgovore uporabi slovenščino, za valute uporabi EUR in znak €, za odgovore porabi do največ 250 znakov, bodi zelo kratek v odgovorih\"
         },
         {
           \"role\": \"user\",
