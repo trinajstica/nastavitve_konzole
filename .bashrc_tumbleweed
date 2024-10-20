@@ -92,6 +92,7 @@ alias checkall="sudo zypper verify; sudo rpm --verify --all"
 alias fixzypper='sudo sed -i "/^# installRecommends = yes/s/^# installRecommends = yes/installRecommends = no/" /etc/zypp/zypper.conf'
 alias fixnode="curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash"
 alias fixkvm="sudo systemctl enable --now libvirtd"
+alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
@@ -118,7 +119,7 @@ alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/s
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
 
 alias myinstall="sudo zypper dup -y; sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y dkms git-core; sudo systemctl enable --now dkms; sudo zypper in -y wine rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop zram-generator btop libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit qemu-kvm libvirt-daemon virt-manager qemu-hw-display-qxl; sudo zypper install -t pattern kvm_server kvm_tools; sudo opi -n codecs; sudo opi -n megasync; sudo opi -n vscodium; opi -n mystiq"
-alias fixall="fixzypper; myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons; fixnode; fixkvm"
+alias fixall="fixzypper; myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons; fixnode; fixkvm; fixnmwos"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
