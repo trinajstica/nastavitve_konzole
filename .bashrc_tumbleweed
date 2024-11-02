@@ -72,7 +72,7 @@ alias db="distrobox"
 alias apkinstall="waydroid app install $1"
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
 alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
-alias fixflatpakicons='flatpak --user override --filesystem=~/.icons/:ro'
+alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
 alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
@@ -82,7 +82,7 @@ alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $US
 alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
 alias fixaddtog5="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
-alias fixyasticons="sudo cp -r $HOME/.icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/* /usr/share/icons/"
+alias fixyasticons="sudo rsync -a --delete $HOME/.local/share/icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/ /usr/share/icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
@@ -98,7 +98,7 @@ alias gpt='function _chatgpt() {
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -d "{
-      \"model\": \"gpt-4o-mini\",
+      \"model\": \"gpt-4\",
       \"messages\": [
         {
           \"role\": \"system\",
@@ -113,17 +113,31 @@ alias gpt='function _chatgpt() {
   echo $response | jq -r '.choices[0].message.content'
 }; _chatgpt'
 
+fixgd() {
+    if [ -f "$1" ]; then
+        sed -i 's/"showWatermark": true/"showWatermark": false/g' "$1"
+        sed -i 's/"showGDevelopSplash": true/"showGDevelopSplash": false/g' "$1"
+        sed -i 's/"showProgressBar": true/"showProgressBar": false/g' "$1"
+        echo "Datoteka '$1' je bila uspešno posodobljena."
+    else
+        echo "Napaka: Datoteka '$1' ne obstaja."
+    fi
+}
+
+
 alias install_wifi='echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf && ([ -d /usr/src/rtl88x2bu-git ] && (cd /usr/src/rtl88x2bu-git && sudo git pull) || sudo git clone "https://github.com/RinCat/RTL88x2BU-Linux-Driver" /usr/src/rtl88x2bu-git) && sudo sed -i "s/PACKAGE_VERSION=\"@PKGVER@\"/PACKAGE_VERSION=\"git\"/g" /usr/src/rtl88x2bu-git/dkms.conf && sudo dkms add -m rtl88x2bu -v git && sudo dkms autoinstall --force'
 alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/src/rtl88x2bu-git && sudo rm /etc/modprobe.d/rtw8822bu.conf'
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
-
-alias myinstall="sudo zypper dup -y; sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y virtualbox-host-source dkms git-core; sudo systemctl enable --now dkms; sudo zypper in -y winetricks wine-mono wine rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller neofetch gamemode virtualbox-qt opi gnome-boxes libnsl1 iotop htop zram-generator btop libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit qemu-kvm libvirt-daemon virt-manager qemu-hw-display-qxl eyedropper blanket; sudo zypper install -t pattern kvm_server kvm_tools; sudo opi -n codecs; sudo opi -n megasync; sudo opi -n vscodium; opi mystiq"
-alias fixall="fixzypper; myinstall; fixwindowbuttons; fixlocalhost; fixzram; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; fixlaptoplid; fixyasticons; fixkvm; fixnmwos"
+#
+alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y virtualbox-host-source dkms git-core; sudo systemctl enable --now dkms"
+alias myinstall2="sudo opi -n codecs; sudo opi -n megasync; sudo opi -n vscodium; sudo opi mystiq"
+alias myinstall="sudo zypper in -y inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket"
+alias fixall="myinstall1;myinstall;myinstall2; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixyasticons; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
 alias zrm="z rm --clean-deps"
-alias upg='z refresh --services; z dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak -y update'
+alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; sudo flatpak -y update'
 alias cleanup="sudo journalctl --vacuum-time=1d; z clean; z purge-kernels"
 alias zps="z ps -s"
 alias zf="z se --provides"
@@ -131,5 +145,3 @@ alias zf="z se --provides"
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
 alias snapper="sudo snapper"
-#
-neofetch --disable packages
