@@ -41,10 +41,8 @@ alias kopiraj='kopiraj_fun'
 #
 export EDITOR=nano
 export VISUAL=nano
+#
 export PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 141)\]\w \[$(tput sgr0)\]\n> "
-if (env | grep -Fq 'DISTROBOX'); then
-    PS1="\[$(tput setaf 208)\]\u\[$(tput setaf 93)\]@\[$(tput setaf 129)\]\h \[$(tput setaf 223)\]\w \[$(tput sgr0)\]\n> "
-fi
 #
 alias top='btop'
 alias toutf8tmp='for file in *.srt; do encoding=$(enca -i "$file"); if [ "$encoding" != "UTF-8" ]; then iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp" && mv "${file}.tmp" "$file"; else echo "$file je že v UTF-8"; fi; done'
@@ -77,11 +75,10 @@ alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
 alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
 alias fixlaptoplid="sudo mkdir -p '/etc/systemd/logind.conf.d'; echo -e \"[Login]\\nHandleLidSwitch=ignore\" | sudo tee '/etc/systemd/logind.conf.d/99-laptop-server.conf' > '/dev/null'"
-alias fixaddtog1="if grep -q docker /etc/group; then sudo usermod -a -G docker $USER; else echo 'Skupina docker ne obstaja'; fi"
-alias fixaddtog2="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
-alias fixaddtog3="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
-alias fixaddtog4="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
-alias fixaddtog5="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
+alias fixaddtog1="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
+alias fixaddtog2="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
+alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
+alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
 alias fixyasticons="sudo rsync -a --delete $HOME/.local/share/icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/ /usr/share/icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
@@ -130,9 +127,10 @@ alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/s
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
 #
 alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y virtualbox-host-source dkms git-core; sudo systemctl enable --now dkms"
-alias myinstall2="sudo opi -n codecs; sudo opi -n megasync; sudo opi -n vscodium; sudo opi mystiq"
-alias myinstall="sudo zypper in -y inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket"
-alias fixall="myinstall1;myinstall;myinstall2; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixyasticons; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5"
+alias myinstall2="sudo zypper in -y inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket"
+alias myinstall3="sudo opi -n codecs; sudo opi -n megasync; sudo opi -n vscodium"
+alias myinstall="myinstall1;myinstall2;myinstall3"
+alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixyasticons; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
