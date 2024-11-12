@@ -83,10 +83,10 @@ alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorit
 alias slockoff="sudo sysctl kernel.split_lock_mitigate=0"
 alias slockon="sudo sysctl kernel.split_lock_mitigate=1"
 alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
-
+#
 alias fedora_beta_on="gsettings set org.gnome.software show-upgrade-prerelease true"
 alias fedora_beta_off="gsettings set org.gnome.software show-upgrade-prerelease false"
-
+#
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
     -H "Content-Type: application/json" \
@@ -106,21 +106,19 @@ alias gpt='function _chatgpt() {
     }")
   echo $response | jq -r '.choices[0].message.content'
 }; _chatgpt'
-
+#
 alias install_wifi='echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf && ([ -d /usr/src/rtl88x2bu-git ] && (cd /usr/src/rtl88x2bu-git && sudo git pull) || sudo git clone "https://github.com/RinCat/RTL88x2BU-Linux-Driver" /usr/src/rtl88x2bu-git) && sudo sed -i "s/PACKAGE_VERSION=\"@PKGVER@\"/PACKAGE_VERSION=\"git\"/g" /usr/src/rtl88x2bu-git/dkms.conf && sudo dkms add -m rtl88x2bu -v git && sudo dkms autoinstall --force'
 alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/src/rtl88x2bu-git && sudo rm /etc/modprobe.d/rtw8822bu.conf'
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
-
-alias myinstall0="sudo dnf in -y gstreamer1-plugin-openh264 mozilla-openh264;sudo dnf in -y git dkms kernel-headers kernel-devel;sudo dnf group install -y --skip-unavailable 'C Development Tools and Libraries';sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-\$(rpm -E %fedora).noarch.rpm;sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-\$(rpm -E %fedora).noarch.rpm;sudo dnf in -y gstreamer1-plugins-{bad-*,good-*,base} gstreamer1-plugin-openh264 gstreamer1-libav --exclude=gstreamer1-plugins-bad-free-devel;sudo dnf group upgrade -y --allowerasing --skip-unavailable Multimedia;sudo dnf update -y @multimedia --setopt='install_weak_deps=False' --exclude=PackageKit-gstreamer-plugin;sudo dnf update -y --skip-unavailable @sound-and-video"
-alias myinstall1="sudo dnf in -y lame* --exclude=lame-devel;sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing;sudo dnf in -y --skip-unavailable rpmfusion-\*-appstream-data"
-alias myinstall2="sudo dnf in -y --skip-unavailable radiotray-ng deluge dconf-editor gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller neofetch gamemode gnome-boxes iotop htop zram-generator plocate VirtualBox gnome-themes-extra"
-alias fixall="myinstall0; myinstall1; myinstall2; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5"
-
+#
+alias myinstall1="sudo dnf in -y gstreamer1-plugin-openh264 mozilla-openh264;sudo dnf in -y git dkms kernel-headers kernel-devel;sudo dnf group install -y --skip-unavailable 'C Development Tools and Libraries';sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-\$(rpm -E %fedora).noarch.rpm;sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-\$(rpm -E %fedora).noarch.rpm;sudo dnf in -y gstreamer1-plugins-{bad-*,good-*,base} gstreamer1-plugin-openh264 gstreamer1-libav --exclude=gstreamer1-plugins-bad-free-devel;sudo dnf group upgrade -y --allowerasing --skip-unavailable Multimedia;sudo dnf update -y @multimedia --setopt='install_weak_deps=False' --exclude=PackageKit-gstreamer-plugin;sudo dnf update -y --skip-unavailable @sound-and-video"
+alias myinstall2="sudo dnf in -y lame* --exclude=lame-devel;sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing;sudo dnf in -y --skip-unavailable rpmfusion-\*-appstream-data"
+alias myinstall3="sudo dnf in -y --skip-unavailable radiotray-ng deluge dconf-editor gtk2 gnome-tweaks steam lutris distrobox bottles filezilla file-roller neofetch gamemode gnome-boxes iotop htop zram-generator plocate VirtualBox gnome-themes-extra"
+alias myinstall="myinstall1; myinstall2; myinstall3"
+alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5"
 #
 alias dnf="sudo dnf"
 alias upg="echo 'Uporabi aplikacijo Programi za posodobitve in ostalo.'"
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
-#
-#neofetch --disable packages
