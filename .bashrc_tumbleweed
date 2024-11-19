@@ -79,7 +79,6 @@ alias fixaddtog1="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $US
 alias fixaddtog2="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
 alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
 alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
-alias fixyasticons="sudo rsync -a --delete $HOME/.local/share/icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/ /usr/share/icons/$(gsettings get org.gnome.desktop.interface icon-theme | awk '{print $2}' | tr -d "'")/"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
@@ -130,12 +129,12 @@ alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y -
 alias myinstall2="sudo zypper in -y fastfetch inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc deluge git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox bottles filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket ptyxis"
 alias myinstall3="sudo opi -n megasync; sudo opi -n vscodium"
 alias myinstall="myinstall1;myinstall2;myinstall3"
-alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixyasticons; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
 alias zrm="z rm --clean-deps"
-alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak -y update'
+alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; sudo flatpak -y update'
 alias cleanup="sudo journalctl --vacuum-time=1d; z clean; z purge-kernels"
 alias zps="z ps -s"
 alias zf="z se --provides"
