@@ -90,6 +90,7 @@ alias fixkvm="sudo systemctl enable --now libvirtd"
 alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
+alias fixbtrfs='sudo btrfs quota disable /'
 #
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
@@ -126,11 +127,11 @@ alias install_wifi='echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw
 alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/src/rtl88x2bu-git && sudo rm /etc/modprobe.d/rtw8822bu.conf'
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
 #
-alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y virtualbox-host-source dkms git-core; sudo systemctl enable --now dkms"
+alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y rtl88x2bu-kmp-default virtualbox-host-source dkms git-core; sudo systemctl enable --now dkms"
 alias myinstall2="sudo zypper in -y minder breeze6-cursors iotop fastfetch inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris podman distrobox filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket ptyxis"
-alias myinstall3="sudo opi -n megasync; sudo opi -n vscodium; sudo opi -n codecs; sudo opi -n bottles; sudo opi -n brave; sudo opi -n vivaldi"
+alias myinstall3="sudo opi -n megasync; sudo opi -n vscodium; sudo opi -n codecs; sudo opi -n brave"
 alias myinstall="myinstall1;myinstall2;myinstall3"
-alias fixall="myinstall; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias fixall="myinstall; fixbtrfs; fixvirbox; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
@@ -142,8 +143,7 @@ alias zf="z se --provides"
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
-alias xampp_start="xampp start"
-alias xampp_stop="xampp stop"
-alias xampp_restart="xampp restart"
+alias xs="xampp restart"
+alias xst="xampp stop"
 alias snapper="sudo snapper"
 fastfetch --config neofetch.jsonc
