@@ -55,6 +55,8 @@ alias reboot='sudo reboot'
 alias iotop='sudo iotop'
 alias db='distrobox'
 alias ubuntu="db enter ubuntu"
+alias debian="db enter debian"
+alias tw="db enter tumbleweed"
 #alias waydroid="distrobox enter --root waydroid"
 #
 alias nopassword='sudo usermod -p "" $USER'
@@ -92,8 +94,8 @@ alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
 alias fixbtrfs='sudo btrfs quota disable /'
-alias remove_packages='sudo zypper remove -y cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
-alias lock_packages='sudo zypper addlock cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
+alias remove_packages='sudo zypper remove -y MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
+alias lock_packages='sudo zypper addlock MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
 #
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
@@ -139,7 +141,9 @@ alias fixall="myinstall; remove_packages; lock_packages; fixmaxmapcount; fixbtrf
 alias zypper="sudo zypper"
 alias z="zypper"
 alias zrm="z rm --clean-deps"
-alias upg='sudo zypper refresh --services; sudo zypper dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak -y update'
+alias upg1='screen -dmS upgrade bash -c "sudo zypper refresh --services; sudo zypper dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak update -y; exit"'
+alias upg2="screen -r upgrade"
+alias upg="upg1;upg2"
 alias cleanup="sudo journalctl --vacuum-time=1d; z clean; z purge-kernels"
 alias zps="z ps -s"
 alias zf="z se --provides"
