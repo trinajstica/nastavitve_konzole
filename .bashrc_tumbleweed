@@ -164,8 +164,8 @@ alias zin="z in"
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
-alias xs="xampp restart &>/dev/null"
-alias xst="xampp stop"
+alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null"
+alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null"
 alias snapper="sudo snapper"
 fastfetch --config neofetch.jsonc
 alias bakc="cp '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite' '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite.bak'"
