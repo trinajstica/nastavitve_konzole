@@ -92,8 +92,8 @@ alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
 alias fixbtrfs='sudo btrfs quota disable /'
-alias remove_packages='sudo zypper remove -y iagno patterns-gnome-gnome_games MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
-alias lock_packages='sudo zypper addlock iagno MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
+alias remove_packages='sudo zypper remove -y gnuchess iagno patterns-gnome-gnome_games MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
+alias lock_packages='sudo zypper addlock gnuchess iagno MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
 #
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
@@ -168,5 +168,3 @@ alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null"
 alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null"
 alias snapper="sudo snapper"
 fastfetch --config neofetch.jsonc
-alias bakc="cp '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite' '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite.bak'"
-alias resc="cp '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite.bak' '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite'"
