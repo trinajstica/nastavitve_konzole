@@ -1,1 +1,1 @@
-my .bashrc for OpenSUSE Tumbleweed & Fedora & Debian (backup purposes)
+my .bashrc for OpenSUSE Tumbleweed & Fedora & Debian & Solus (backup purposes)
