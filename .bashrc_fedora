@@ -41,7 +41,12 @@ alias kopiraj='kopiraj_fun'
 #
 export EDITOR=nano
 export VISUAL=nano
-export PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 141)\]\w \[$(tput sgr0)\]\n> "
+# Preveri, če je CONTAINER_ID postavljen
+if [ -n "$CONTAINER_ID" ]; then
+    PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 105)\]($CONTAINER_ID) \[$(tput setaf 105)\]\w\[$(tput sgr0)\]\$ "
+else
+    PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 105)\]\w\[$(tput sgr0)\]\$ "
+fi
 alias top='btop'
 alias toutf8tmp='for file in *.srt; do encoding=$(enca -i "$file"); if [ "$encoding" != "UTF-8" ]; then iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp" && mv "${file}.tmp" "$file"; else echo "$file je že v UTF-8"; fi; done'
 alias removeitmp='for file in *.srt; do sed -i "s/<i>//g; s/<\/i>//g" "$file"; done'
@@ -130,4 +135,6 @@ alias xampp="sudo /opt/lampp/xampp"
 alias xs="echo 'Re/Start xampp'; xampp restart &> /dev/null; echo 'Ok'"
 alias xst="echo 'Stop xampp'; xampp stop &> /dev/null; echo 'Ok'"
 #
-fastfetch --config neofetch.jsonc
+if [ -z "$CONTAINER_ID" ]; then
+	fastfetch --config neofetch.jsonc
+fi
