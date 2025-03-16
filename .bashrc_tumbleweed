@@ -99,7 +99,7 @@ alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/mo
 alias fixbtrfs='sudo btrfs quota disable /'
 alias remove_packages='sudo zypper remove -y gnuchess iagno patterns-gnome-gnome_games MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
 alias lock_packages='sudo zypper addlock gnuchess iagno MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
-alias fixgames="sudo setsebool -P selinuxuser_execmod 1"
+alias fixselinux="sudo setsebool -P selinuxuser_execmod 1;sudo setsebool -P selinuxuser_execstack 1"
 #
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
@@ -154,7 +154,7 @@ alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y -
 alias myinstall2="sudo zypper in -y minder breeze6-cursors iotop fastfetch inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris python3-distro python3-PyYAML podman distrobox filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket"
 alias myinstall3="sudo opi -n codecs"
 alias myinstall="myinstall1;myinstall2;myinstall3"
-alias fixall="myinstall; remove_packages; lock_packages; fixgames; fixmaxmapcount; fixbtrfs; fixvirbox; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias fixall="myinstall; remove_packages; lock_packages; fixselinux; fixmaxmapcount; fixbtrfs; fixvirbox; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 #
 alias zypper="sudo zypper"
 alias z="zypper"
