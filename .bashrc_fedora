@@ -126,9 +126,11 @@ alias myinstall="myinstall1; myinstall2; myinstall3"
 alias fixall="myinstall; fixbtrfs; fixmaxmapcount; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog2; fixaddtog3; fixaddtog4; fixaddtog5; install_wifi"
 #
 alias dnf="sudo dnf"
-alias upg_='screen -dmS upgrade bash -c "sudo dnf update --refresh -y; flatpak -y update; exit"'
 alias cleanup="sudo dnf clean all; sudo dnf autoremove -y; sudo journalctl --vacuum-time=1d"
-alias upg="upg_;screen -r upgrade"
+alias upg1='screen -dmS upgrade bash -c "sudo dnf update --refresh -y; flatpak update -y; echo \"Pritisnite Enter...\"; read"'
+alias upg2="screen -r upgrade"
+alias upg="upg1;upg2"
+
 #
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
