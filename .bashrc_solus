@@ -101,4 +101,6 @@ alias fixall="fixdbox; fixpodman; fixmaxmapcount; fixvirbox; fixwinesound; fixfl
 alias e='sudo eopkg'
 alias cleanup='cleanoldkernels; sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
 alias upg='sudo eopkg upgrade -y; flatpak update -y'
-neofetch
+if [ -z "$CONTAINER_ID" ]; then
+	neofetch
+fi
