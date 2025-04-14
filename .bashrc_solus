@@ -91,6 +91,7 @@ alias fixpodman='mkdir -p ~/.config/containers && echo -e "[engine]\nruntime = \
 alias fixwaydnet='sudo ufw allow 53 && sudo ufw allow 67 && sudo ufw default allow FORWARD'
 alias fixbtrfs='sudo btrfs quota disable /'
 cleanoldkernels() { current=$(uname -r | sed "s/-.*//"); kernels=($(eopkg list-installed | awk '/^linux-/{print $1}' | sort -V -r)); active=""; for k in "${kernels[@]}"; do ver=${k#linux-}; [[ "$current" == "$ver"* ]] && { active=$k; break; }; done; [[ -z "$active" ]] && return; [[ "${kernels[0]}" == "$active" ]] && penultimate=${kernels[1]} || penultimate=${kernels[0]}; for k in "${kernels[@]}"; do [[ "$k" != "$active" && "$k" != "$penultimate" ]] && sudo eopkg remove -y "$k"; done; }
+alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y flathub \" \$0}" > spisek'
 alias db='distrobox'
 alias ubuntu='distrobox enter ubuntu'
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
