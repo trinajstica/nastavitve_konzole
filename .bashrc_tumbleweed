@@ -1,28 +1,7 @@
-# openSUSE Tumbleweed #
-#######################
-# .bashrc by BArko    #
-#######################
-#
-if [ -f /etc/bashrc ]; then
-    . /etc/bashrc
-fi
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-fi
-export PATH
-if [ -d ~/.bashrc.d ]; then
-    for rc in ~/.bashrc.d/*; do
-        if [ -f "$rc" ]; then
-            . "$rc"
-        fi
-    done
-fi
-unset rc
-###
-#
-# ostali aliasi
+source /usr/share/defaults/etc/profile
+export JAVA_HOME=/usr/lib64/openjdk-21
+export PATH=$JAVA_HOME/bin:$PATH
 test -s ~/.alias && . ~/.alias || true
-#
 kopiraj_fun() {
     if [ "$#" -ge 2 ]; then
         echo -n "Ste prepričani, da želite nadaljevati? (D/N): "
@@ -38,69 +17,6 @@ kopiraj_fun() {
     fi
 }
 alias kopiraj='kopiraj_fun'
-#
-export EDITOR=nano
-export VISUAL=nano
-#
-# Preveri, če je CONTAINER_ID postavljen
-if [ -n "$CONTAINER_ID" ]; then
-    PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 105)\]($CONTAINER_ID) \[$(tput setaf 105)\]\w\[$(tput sgr0)\]\$ "
-else
-    PS1="\[$(tput setaf 33)\]\u\[$(tput setaf 69)\]@\[$(tput setaf 105)\]\h \[$(tput setaf 105)\]\w\[$(tput sgr0)\]\$ "
-fi
-#
-alias top='btop'
-alias toutf8tmp='for file in *.srt; do encoding=$(enca -i "$file"); if [ "$encoding" != "UTF-8" ]; then iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp" && mv "${file}.tmp" "$file"; else echo "$file je že v UTF-8"; fi; done'
-alias removeitmp='for file in *.srt; do sed -i "s/<i>//g; s/<\/i>//g" "$file"; done'
-alias toutf8="toutf8tmp;removeitmp"
-alias df='df -H'
-alias updatedb='sudo updatedb'
-alias bios='sudo dmidecode -s bios-version'
-alias reboot='sudo reboot'
-alias iotop='sudo iotop'
-alias db='distrobox'
-alias ubuntu="db enter ubuntu"
-#alias waydroid="distrobox enter --root waydroid"
-#
-alias nopassword='sudo usermod -p "" $USER'
-alias setpassword='sudo passwd $USER'
-alias tar='tar -cvzf'
-alias untar='tar -xvzf'
-alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
-alias iotop='sudo iotop -o'
-alias spremembe="find . -type f -printf '%T@ %p\n' | sort -n | tail -n 10"
-alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/$USER/.local/share/gvfs-metadata/home"
-alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
-alias db="distrobox"
-alias apkinstall="waydroid app install $1"
-alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
-alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
-alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
-alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
-alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
-alias fixlaptoplid="sudo mkdir -p '/etc/systemd/logind.conf.d'; echo -e \"[Login]\\nHandleLidSwitch=ignore\" | sudo tee '/etc/systemd/logind.conf.d/99-laptop-server.conf' > '/dev/null'"
-alias fixaddtog1="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
-alias fixaddtog2="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
-alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
-alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
-alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
-alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
-alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
-alias fixmaxmapcount='echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
-alias pkoff="sudo systemctl disable --now packagekit;sudo systemctl mask packagekit"
-alias pkon="sudo systemctl unmask packagekit; sudo systemctl enable --now packagekit"
-alias checkall="sudo zypper verify; sudo rpm --verify --all"
-alias fixzypper='sudo sed -i "/^# installRecommends = yes/s/^# installRecommends = yes/installRecommends = no/" /etc/zypp/zypper.conf'
-alias fixkvm="sudo systemctl enable --now libvirtd"
-alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
-alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
-alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
-alias fixbtrfs='sudo btrfs quota disable /'
-alias remove_packages='sudo zypper remove -y gnuchess iagno patterns-gnome-gnome_games MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
-alias lock_packages='sudo zypper addlock gnuchess iagno MozillaFirefox cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
-alias fixselinux="sudo setsebool -P selinuxuser_execmod 1;sudo setsebool -P selinuxuser_execstack 1"
-#
 alias gpt='function _chatgpt() {
   response=$(curl -s https://api.openai.com/v1/chat/completions \
     -H "Content-Type: application/json" \
@@ -120,21 +36,6 @@ alias gpt='function _chatgpt() {
     }")
   echo $response | jq -r '.choices[0].message.content'
 }; _chatgpt'
-#
-alias ggpt='function _ggpt() {
-  response=$(curl -s -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $GEMINI_API_KEY" \
-    -d "{
-      \"contents\": [{
-        \"parts\": [{
-          \"text\": \"Odgovori na vprašanje uporabnika v slovenščini. Če je potrebno, uporabi Python knjižnice za izračune. Za valute uporabi EUR in znak €. Odgovori naj bodo kratki, do 250 znakov. Uporabnik: $*\"
-        }]
-      }]
-    }" "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")
-  echo $response | jq -r '.candidates[0].content.parts[0].text'
-}; _ggpt'
-#
 fixgd() {
     if [ -f "$1" ]; then
         sed -i 's/"showWatermark": true/"showWatermark": false/g' "$1"
@@ -145,34 +46,62 @@ fixgd() {
         echo "Napaka: Datoteka '$1' ne obstaja."
     fi
 }
-#
-alias install_wifi='echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf && ([ -d /usr/src/rtl88x2bu-git ] && (cd /usr/src/rtl88x2bu-git && sudo git pull) || sudo git clone "https://github.com/RinCat/RTL88x2BU-Linux-Driver" /usr/src/rtl88x2bu-git) && sudo sed -i "s/PACKAGE_VERSION=\"@PKGVER@\"/PACKAGE_VERSION=\"git\"/g" /usr/src/rtl88x2bu-git/dkms.conf && sudo dkms add -m rtl88x2bu -v git && sudo dkms autoinstall --force'
-alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/src/rtl88x2bu-git && sudo rm /etc/modprobe.d/rtw8822bu.conf'
-alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
-#
-alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y virtualbox-host-source dkms git-core; sudo systemctl enable --now dkms"
-alias myinstall2="sudo zypper in -y minder breeze6-cursors iotop fastfetch inkscape nautilus-file-roller nautilus-extension-seahorse nautilus-image-converter winetricks wine-mono wine rhythmbox bc git-core enca busybox-net-tools fetchmsttfonts vulkan-tools fluidsynth sshpass gtk2 gnome-tweaks steam lutris python3-distro python3-PyYAML podman distrobox filezilla file-roller gamemode virtualbox-qt opi gnome-boxes libnsl1 libgthread-2_0-0 plocate java-11-openjdk-devel kernel-firmware-amdgpu libdrm_amdgpu1 libdrm_amdgpu1-32bit libdrm_radeon1 libdrm_radeon1-32bit libvulkan_radeon libvulkan_radeon-32bit libvulkan1 libvulkan1-32bit eyedropper blanket"
-alias myinstall3="sudo opi -n codecs"
-alias myinstall="myinstall1;myinstall2;myinstall3"
-alias fixall="myinstall; remove_packages; lock_packages; fixselinux; fixmaxmapcount; fixbtrfs; fixvirbox; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
-#
-alias zypper="sudo zypper"
-alias z="zypper"
-alias zrm="z rm --clean-deps"
-alias upg1='screen -dmS upgrade bash -c "sudo zypper refresh --services; sudo zypper dist-upgrade -y --allow-downgrade --allow-name-change --allow-arch-change --allow-vendor-change --auto-agree-with-licenses; flatpak update -y; exit"'
-alias upg2="screen -r upgrade"
-alias upg="upg1;upg2"
-alias cleanup="sudo journalctl --vacuum-time=1d; z clean; z purge-kernels"
-alias zps="z ps -s"
-alias zf="z se --provides"
-alias zse="z se"
-alias zin="z in"
-#
+export EDITOR=nano
+export VISUAL=nano
+alias top='btop'
+alias toutf8tmp='for file in *.srt; do encoding=$(enca -i "$file"); if [ "$encoding" != "UTF-8" ]; then iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp" && mv "${file}.tmp" "$file"; else echo "$file je že v UTF-8"; fi; done'
+alias removeitmp='for file in *.srt; do sed -i "s/<i>//g; s/<\/i>//g" "$file"; done'
+alias toutf8="toutf8tmp;removeitmp"
+alias df='df -H'
+alias updatedb='sudo updatedb'
+alias bios='sudo dmidecode -s bios-version'
+alias reboot='sudo reboot'
+alias iotop='sudo iotop'
+alias nopassword='sudo usermod -p "" $USER'
+alias setpassword='sudo passwd $USER'
+alias tar='tar -cvzf'
+alias untar='tar -xvzf'
+alias makeiso='mkisofs -iso-level 3 -o makeiso.iso .'
+alias iotop='sudo iotop -o'
+alias spremembe="find . -type f -printf '%T@ %p\n' | sort -n | tail -n 10"
+alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/$USER/.local/share/gvfs-metadata/home"
+alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
+alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
+alias fixwinesound='mkdir -p /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | tee /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
+alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
+alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
+alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
+alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
+alias fixlaptoplid="sudo mkdir -p '/etc/systemd/logind.conf.d'; echo -e \"[Login]\\nHandleLidSwitch=ignore\" | sudo tee '/etc/systemd/logind.conf.d/99-laptop-server.conf' > '/dev/null'"
+alias fixaddtog1="if grep -q wheel /etc/group; then sudo usermod -a -G wheel $USER; else echo 'Skupina wheel ne obstaja'; fi"
+alias fixaddtog2="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxusers $USER; else echo 'Skupina vboxusers ne obstaja'; fi"
+alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
+alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
+alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
+alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
+alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
+alias fixmaxmapcount='echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
+alias fixkvm="sudo systemctl enable --now libvirtd"
+alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
+alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
+alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
+alias fixm2026='sudo ln -s /opt/smfp-common/printer/bin/rastertospl /usr/lib/cups/filter/rastertosplc'
+alias fixdbox="sudo touch /etc/subuid /etc/subgid && sudo chmod 644 /etc/subuid /etc/subgid && sudo usermod --add-subuids 100000-165536 --add-subgids 100000-165536 $USER"
+alias fixpodman='mkdir -p ~/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > ~/.config/containers/containers.conf'
+alias fixwaydnet='sudo ufw allow 53 && sudo ufw allow 67 && sudo ufw default allow FORWARD'
+alias fixbtrfs='sudo btrfs quota disable /'
+cleanoldkernels() { current=$(uname -r | sed "s/-.*//"); kernels=($(eopkg list-installed | awk '/^linux-/{print $1}' | sort -V -r)); active=""; for k in "${kernels[@]}"; do ver=${k#linux-}; [[ "$current" == "$ver"* ]] && { active=$k; break; }; done; [[ -z "$active" ]] && return; [[ "${kernels[0]}" == "$active" ]] && penultimate=${kernels[1]} || penultimate=${kernels[0]}; for k in "${kernels[@]}"; do [[ "$k" != "$active" && "$k" != "$penultimate" ]] && sudo eopkg remove -y "$k"; done; }
+alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y flathub \" \$0}" > spisek'
+alias db='distrobox'
+alias ubuntu='distrobox enter ubuntu'
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
-alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null"
-alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null"
-alias snapper="sudo snapper"
+alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
+alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
+alias fixall="fixdbox; fixpodman; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias e='sudo eopkg'
+alias cleanup='cleanoldkernels; sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
+alias upg='sudo eopkg upgrade -y; flatpak update -y'
 if [ -z "$CONTAINER_ID" ]; then
-	fastfetch --config neofetch.jsonc
+	neofetch
 fi
