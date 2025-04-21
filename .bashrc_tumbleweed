@@ -97,8 +97,8 @@ alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
 alias fixbtrfs='sudo btrfs quota disable /'
-alias remove_packages='sudo zypper remove -y gnuchess iagno patterns-gnome-gnome_games cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
-alias lock_packages='sudo zypper addlock gnuchess iagno cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
+alias remove_packages='sudo zypper remove -y libreoffice gnuchess iagno patterns-gnome-gnome_games cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
+alias lock_packages='sudo zypper addlock libreoffice gnuchess iagno cheese evolution gnome-chess gnome-extensions gnome-mahjongg gnome-mines gnome-music gnome-sudoku lightsoff polari quadrapassel simple-scan swell-foop totem'
 alias fixselinux="sudo setsebool -P selinuxuser_execmod 1;sudo setsebool -P selinuxuser_execstack 1"
 alias fixpodman='mkdir -p ~/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > ~/.config/containers/containers.conf'
 #
