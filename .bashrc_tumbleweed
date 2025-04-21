@@ -152,7 +152,7 @@ alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/s
 alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
 #
 alias myinstall1="sudo zypper in -y -t pattern devel_kernel; sudo zypper in -y --type pattern devel_basis; sudo zypper in -y dkms bc git-core; sudo systemctl enable --now dkms"
-alias myinstall2="sudo zypper in -y busybox-net-tools java-17-openjdk gtk3 gtk3-tools libgtk-3-0 glib2 glib2-devel breeze6-cursors iotop fastfetch inkscape rhythmbox fetchmsttfonts sshpass gtk2 gnome-tweaks steam lutris python3-distro python3-PyYAML podman distrobox filezilla file-roller gamemode opi gnome-boxes plocate eyedropper blanket"
+alias myinstall2="sudo zypper in -y gnome-calendar busybox-net-tools java-17-openjdk gtk3 gtk3-tools libgtk-3-0 glib2 glib2-devel breeze6-cursors iotop fastfetch inkscape rhythmbox fetchmsttfonts sshpass gtk2 gnome-tweaks steam lutris python3-distro python3-PyYAML podman distrobox filezilla file-roller gamemode opi gnome-boxes plocate eyedropper blanket"
 alias myinstall3="sudo opi -n codecs"
 alias myinstall="myinstall1;myinstall2;myinstall3"
 alias fixall="pkoff; myinstall; remove_packages; lock_packages; fixselinux; fixmaxmapcount; fixbtrfs; fixvirbox; fixwindowbuttons; fixlocalhost; fixwinesound; fixflatpakicons; fixicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
