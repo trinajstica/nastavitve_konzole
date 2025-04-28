@@ -1,6 +1,7 @@
 source /usr/share/defaults/etc/profile
-export JAVA_HOME=/usr/lib64/openjdk-21
+export JAVA_HOME=/usr/lib64/openjdk-17
 export PATH=$JAVA_HOME/bin:$PATH
+# sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java
 test -s ~/.alias && . ~/.alias || true
 kopiraj_fun() {
     if [ "$#" -ge 2 ]; then
@@ -54,6 +55,7 @@ alias removeitmp='for file in *.srt; do sed -i "s/<i>//g; s/<\/i>//g" "$file"; d
 alias toutf8="toutf8tmp;removeitmp"
 alias df='df -H'
 alias updatedb='sudo updatedb'
+alias locate='sudo locate'
 alias bios='sudo dmidecode -s bios-version'
 alias reboot='sudo reboot'
 alias iotop='sudo iotop'
@@ -67,7 +69,7 @@ alias spremembe="find . -type f -printf '%T@ %p\n' | sort -n | tail -n 10"
 alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/$USER/.local/share/gvfs-metadata/home"
 alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
+alias fixwinesound='mkdir -p /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | tee /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
@@ -87,10 +89,12 @@ alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
 alias fixm2026='sudo ln -s /opt/smfp-common/printer/bin/rastertospl /usr/lib/cups/filter/rastertosplc'
 alias fixdbox="sudo touch /etc/subuid /etc/subgid && sudo chmod 644 /etc/subuid /etc/subgid && sudo usermod --add-subuids 100000-165536 --add-subgids 100000-165536 $USER"
-alias fixpodman='mkdir -p ~/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > ~/.config/containers/containers.conf'
+alias fixpodman1='sudo touch /etc/subuid /etc/subgid; sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER'
+alias fixpodman2='mkdir -p $HOME/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > $HOME/.config/containers/containers.conf'
 alias fixwaydnet='sudo ufw allow 53 && sudo ufw allow 67 && sudo ufw default allow FORWARD'
 alias fixbtrfs='sudo btrfs quota disable /'
 cleanoldkernels() { current=$(uname -r | sed "s/-.*//"); kernels=($(eopkg list-installed | awk '/^linux-/{print $1}' | sort -V -r)); active=""; for k in "${kernels[@]}"; do ver=${k#linux-}; [[ "$current" == "$ver"* ]] && { active=$k; break; }; done; [[ -z "$active" ]] && return; [[ "${kernels[0]}" == "$active" ]] && penultimate=${kernels[1]} || penultimate=${kernels[0]}; for k in "${kernels[@]}"; do [[ "$k" != "$active" && "$k" != "$penultimate" ]] && sudo eopkg remove -y "$k"; done; }
+alias toac3='f(){ [ -z "$1" ] && echo "⚠️ Uporaba: dts2ac3 <datoteka.mkv>" && return 1; [ ! -f "$1" ] && echo "❌ Napaka: datoteka ne obstaja." && return 1; ffmpeg -i "$1" -map 0 -c:v copy -c:a ac3 -b:a 640k -c:s copy "${1%.*}_ac3.mkv"; }; f'
 alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y flathub \" \$0}" > spisek'
 alias db='distrobox'
 alias ubuntu='distrobox enter ubuntu'
@@ -98,7 +102,8 @@ alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
 alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
 alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
-alias fixall="fixdbox; fixpodman; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias fixall="fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='cleanoldkernels; sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
 alias upg='sudo eopkg upgrade -y; flatpak update -y'
