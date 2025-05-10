@@ -4,12 +4,23 @@ export PATH=$JAVA_HOME/bin:$PATH
 # sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java
 test -s ~/.alias && . ~/.alias || true
 kopiraj_fun() {
+    # Definiraj spremenljivko z izključenimi mapami
+    exclude_maps='.config/containers .cache .local/share/containers'
+
     if [ "$#" -ge 2 ]; then
         echo -n "Ste prepričani, da želite nadaljevati? (D/N): "
         read -r odgovor
         odgovor=$(echo "$odgovor" | tr '[:upper:]' '[:lower:]')
+
         if [ "$odgovor" = "d" ]; then
-            sudo rsync -a --info=progress2 --delete "$@"
+            # Izdelaj parameter za --exclude za vsako mapo v spremenljivki exclude_maps
+            exclude_params=""
+            for map in $exclude_maps; do
+                exclude_params="$exclude_params --exclude='$map'"
+            done
+
+            # Izvedi rsync z dinamično dodanimi parametri
+            sudo rsync -a --info=progress2 --delete $exclude_params "$@"
         else
             echo "Operacija preklicana."
         fi
@@ -82,7 +93,7 @@ alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
-alias fixmaxmapcount='echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
+alias fixmaxmapcount='sudo mkdir -p /etc/sysctl.d; echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
 alias fixkvm="sudo systemctl enable --now libvirtd"
 alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
@@ -102,7 +113,35 @@ alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
 alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
 alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
-alias fixall="fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias fixrtw88='sudo mkdir -p /etc/modprobe.d && echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf > /dev/null'
+alias fixjava='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java'
+#
+exportpod() {
+  if [ -z "$1" ]; then
+    echo "Uporaba: exportpod <ime_kontejnerja>"
+  elif podman container exists "$1"; then
+    podman export -o "$1.tar" "$1"
+  else
+    echo "Kontejner '$1' ne obstaja"
+  fi
+}
+#
+importpod() {
+  if [ -z "$1" ]; then
+    echo "Uporaba: importpod <ime_datoteke.tar>"
+  elif [ -f "$1" ]; then
+    podman import "$1"
+  else
+    echo "Datoteka '$1' ne obstaja"
+  fi
+}
+#
+alias myinstall1='sudo eopkg install -y -c system.devel git linux-current-headers'
+alias myinstall2='sudo eopkg install -y transmission yarn gnome-software nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
+#
+alias myinstall='myinstall1;fixrtw88;myinstall2'
+#
+alias fixall="myinstall; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='cleanoldkernels; sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
