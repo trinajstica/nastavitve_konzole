@@ -29,8 +29,10 @@ kopiraj_fun() {
     fi
 }
 alias kopiraj='kopiraj_fun'
-alias gpt='function _chatgpt() {
-  response=$(curl -s https://api.openai.com/v1/chat/completions \
+#
+gpt() {
+  local prompt="$*"
+  local response=$(curl -s https://api.openai.com/v1/chat/completions \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -d "{
@@ -42,12 +44,13 @@ alias gpt='function _chatgpt() {
         },
         {
           \"role\": \"user\",
-          \"content\": \"$*\"
+          \"content\": \"${prompt}\"
         }
       ]
     }")
-  echo $response | jq -r '.choices[0].message.content'
-}; _chatgpt'
+  echo "$response" | jq -r '.choices[0].message.content'
+}
+#
 fixgd() {
     if [ -f "$1" ]; then
         sed -i 's/"showWatermark": true/"showWatermark": false/g' "$1"
@@ -81,6 +84,7 @@ alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/
 alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
 alias fixwinesound='mkdir -p /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | tee /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
+alias fixwinesoundsys='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d && echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}]" | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
@@ -137,7 +141,7 @@ importpod() {
 }
 #
 alias myinstall1='sudo eopkg install -y -c system.devel git linux-current-headers'
-alias myinstall2='sudo eopkg install -y rsync transmission yarn gnome-software nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
+alias myinstall2='sudo eopkg install -y rhythmbox brave gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
 #
 alias myinstall='myinstall1;fixrtw88;myinstall2'
 #
