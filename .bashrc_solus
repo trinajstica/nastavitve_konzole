@@ -119,6 +119,7 @@ alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
 alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
 alias fixrtw88='sudo mkdir -p /etc/modprobe.d && echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf > /dev/null'
 alias fixjava='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java'
+alias fixspicecap='f=$(find /usr -name spice-client-glib-usb-acl-helper 2>/dev/null | head -n1) && (getcap "$f" | grep -q cap && sudo setcap -r "$f" && echo "✔ Capabilities removed from $f" || echo "ℹ️  No capabilities to remove in $f")'
 #
 exportpod() {
   if [ -z "$1" ]; then
@@ -145,7 +146,7 @@ alias myinstall2='sudo eopkg install -y rhythmbox brave gnome-disk-utility ploca
 #
 alias myinstall='myinstall1;fixrtw88;myinstall2'
 #
-alias fixall="myinstall; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias fixall="myinstall; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='cleanoldkernels; sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
