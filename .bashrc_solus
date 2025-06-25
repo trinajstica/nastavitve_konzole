@@ -141,15 +141,38 @@ importpod() {
   fi
 }
 #
-alias myinstall1='sudo eopkg install -y -c system.devel git linux-current-headers'
-alias myinstall2='sudo eopkg install -y rhythmbox brave gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
+ffs_sync() {
+  mkdir -p srts && \
+  find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" \) | while read -r video; do
+    srt="${video%.*}.srt"
+    [ -f "$srt" ] || continue
+    cp "$srt" srts/ && ffsubsync "$video" -i "$srt" -o "$srt"
+  done
+}
+alias ffsys='ffs_sync'
 #
-alias myinstall='myinstall1;fixrtw88;myinstall2'
+function fixbroken {
+  ( sudo eopkg check 2>&1 || true ) | tee /dev/stderr \
+    | awk '/^Broken/ { print $4 } /Cannot calculate SHA1 hash of/ { print $NF }' \
+    | while read -r item; do
+        pkg=$(eopkg whatprovides "$item" 2>/dev/null | head -n1)
+        if [ -n "$pkg" ]; then
+          echo "Reinstalliram: $pkg"
+          sudo eopkg it --reinstall "$pkg"
+        else
+          echo "Opozorilo: ne najdem paketa za »$item«"
+        fi
+      done
+}
+
+#
+alias myinstall_dev='sudo eopkg install -y -c system.devel git linux-current-headers'
+alias myinstall='sudo eopkg install -y btop firejail binutils rhythmbox brave gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
 #
 alias fixall="myinstall; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
-alias cleanup='cleanoldkernels; sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
+alias cleanup='sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
 alias upg='sudo eopkg upgrade -y; flatpak update -y'
 if [ -z "$CONTAINER_ID" ]; then
 	neofetch
