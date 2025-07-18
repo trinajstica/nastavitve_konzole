@@ -110,7 +110,7 @@ alias fixwaydnet='sudo ufw allow 53 && sudo ufw allow 67 && sudo ufw default all
 alias fixbtrfs='sudo btrfs quota disable /'
 cleanoldkernels() { current=$(uname -r | sed "s/-.*//"); kernels=($(eopkg list-installed | awk '/^linux-/{print $1}' | sort -V -r)); active=""; for k in "${kernels[@]}"; do ver=${k#linux-}; [[ "$current" == "$ver"* ]] && { active=$k; break; }; done; [[ -z "$active" ]] && return; [[ "${kernels[0]}" == "$active" ]] && penultimate=${kernels[1]} || penultimate=${kernels[0]}; for k in "${kernels[@]}"; do [[ "$k" != "$active" && "$k" != "$penultimate" ]] && sudo eopkg remove -y "$k"; done; }
 alias toac3='f(){ [ -z "$1" ] && echo "⚠️ Uporaba: dts2ac3 <datoteka.mkv>" && return 1; [ ! -f "$1" ] && echo "❌ Napaka: datoteka ne obstaja." && return 1; ffmpeg -i "$1" -map 0 -c:v copy -c:a ac3 -b:a 640k -c:s copy "${1%.*}_ac3.mkv"; }; f'
-alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y flathub \" \$0}" > spisek'
+alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y -u flathub \" \$0}" > spisek'
 alias db='distrobox'
 alias ubuntu='distrobox enter ubuntu'
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
@@ -165,11 +165,13 @@ function fixbroken {
       done
 }
 #
+alias wd_restart='sudo systemctl restart waydroid-container.service'
 alias wifi-power-disable='echo -e "[connection]\nwifi.powersave = 2" | sudo tee /etc/NetworkManager/conf.d/wifi-powersave-off.conf > /dev/null && sudo systemctl restart NetworkManager'
-alias myinstall_dev='sudo eopkg install -y -c system.devel git linux-current-headers'
-alias myinstall='sudo eopkg install -y iw enca btop firejail binutils rhythmbox brave gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
+alias myinstall_rm='sudo eopkg rm -y celluloid snapshot solus-sc solus-sc-icons'
+alias myinstall_dev='sudo eopkg it -y -c system.devel git linux-current-headers'
+alias myinstall='sudo eopkg it -y iw enca btop firejail binutils rhythmbox brave gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
 #
-alias fixall="myinstall; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4;wifi-power-disable"
+alias fixall="myinstall_rm; myinstall; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4;wifi-power-disable"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
