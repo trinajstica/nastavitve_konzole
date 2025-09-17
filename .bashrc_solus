@@ -128,11 +128,15 @@ alias fixpodman1='sudo touch /etc/subuid /etc/subgid; sudo usermod --add-subuids
 alias fixpodman2='mkdir -p $HOME/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > $HOME/.config/containers/containers.conf'
 alias fixwaydnet='sudo ufw allow 53 && sudo ufw allow 67 && sudo ufw default allow FORWARD'
 alias fixbtrfs='sudo btrfs quota disable /'
+alias fixsteamoldcpu1='echo "STEAM_HACK_IGNORE_HWCAPS=1" | sudo tee /etc/environment'
+# reboot
+alias fixsteamoldcpu2='sudo ldconfig -X'
 cleanoldkernels() { current=$(uname -r | sed "s/-.*//"); kernels=($(eopkg list-installed | awk '/^linux-/{print $1}' | sort -V -r)); active=""; for k in "${kernels[@]}"; do ver=${k#linux-}; [[ "$current" == "$ver"* ]] && { active=$k; break; }; done; [[ -z "$active" ]] && return; [[ "${kernels[0]}" == "$active" ]] && penultimate=${kernels[1]} || penultimate=${kernels[0]}; for k in "${kernels[@]}"; do [[ "$k" != "$active" && "$k" != "$penultimate" ]] && sudo eopkg remove -y "$k"; done; }
 alias toac3='f(){ [ -z "$1" ] && echo "⚠️ Uporaba: dts2ac3 <datoteka.mkv>" && return 1; [ ! -f "$1" ] && echo "❌ Napaka: datoteka ne obstaja." && return 1; ffmpeg -i "$1" -map 0 -c:v copy -c:a ac3 -b:a 640k -c:s copy "${1%.*}_ac3.mkv"; }; f'
 alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y -u flathub \" \$0}" > spisek'
 alias db='distrobox'
 alias ubuntu='distrobox enter ubuntu'
+alias debian='distrobox enter debian'
 alias backup="kopiraj /home/barko/ /run/media/barko/L_BACKUPS/barko/"
 alias xampp="sudo /opt/lampp/xampp"
 alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
@@ -216,6 +220,311 @@ get_wmclass_interactive() {
   local wid=$(xdotool selectwindow)
   # vrni razred
   xprop -id "$wid" WM_CLASS | awk -F\" '{ print $4 }'
+}
+dupes() {
+  # =========================================
+  # Orodje za odstranjevanje .ogg duplikatov
+  # Primarno: ARTIST+TITLE iz tagov
+  # Fallback/alternativa: ujemanje po imenu datoteke (normalizirano)
+  # Ohranimo najdaljši posnetek (po trajanju)
+  # =========================================
+
+  show_help() {
+    cat <<'EOF'
+Uporaba:
+  dupes -s [MAPA] [možnosti]
+
+Možnosti:
+  -s, --start          ZAČNI iskanje in obdelavo (obvezno)
+  --dry-run            Ne briši, samo izpiši, kaj bi šlo v koš
+  --force              Briši brez potrditve
+  -v,  --verbose       Podroben izpis odločitev
+  --no-progress        Skrij sprotni status
+  --stats-every N      Pogostost posodobitev napredka (privzeto: 25)
+  --mode MODE          Način ujemanja duplikatov:
+                       tags  = samo po tagih ARTIST+TITLE
+                       name  = samo po imenu datoteke
+                       both  = najprej tags, sicer name (privzeto)
+  --show-keys          Na koncu pokaži nekaj ključev (za diagnostiko)
+  -h, --help           Pokaži to pomoč
+
+Primeri:
+  dupes -s --mode both                 # tags ali (če manjkajo) po imenu
+  dupes -s /pot --dry-run --verbose    # preizkus, podrobni logi
+  dupes -s --mode name                 # samo po imenu datotek
+
+Opombe:
+  - Potrebuje ffprobe (paket ffmpeg).
+  - "Ime" se normalizira: odstrani oklepaje/oznake (npr. "(live)", "[remastered]"),
+    "feat./ft./featuring", različne pomišljaje, diakritiko in presežne presledke.
+  - Hevristika imena:
+      "Izvajalec - Naslov" ali "Izvajalec – Naslov" (če je točno en pomišljaj).
+    V drugih primerih se celoten naziv obravnava kot naslov brez izvajalca.
+EOF
+  }
+
+  # -------------------------------
+  # Pomožne: slugify (ASCII, lower)
+  # -------------------------------
+  _slugify() {
+    # → niz: pretvori v ASCII (TRANSLIT), zamenjaj ne-alfanumerične v presledek,
+    # strni presledke, odreži robove, v lower-case.
+    # opomba: iconv je del glibc (tudi na Solusu)
+    LC_ALL=C \
+    iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null \
+    | sed "s/['\"]/ /g" \
+    | tr -c '[:alnum:]' ' ' \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed 's/[[:space:]]\+/ /g; s/^[[:space:]]*//; s/[[:space:]]*$//'
+  }
+
+  # -----------------------------------------
+  # Pomožne: normaliziraj "ime skladbe" iz file name
+  # -----------------------------------------
+  _key_from_filename() {
+    local fbase="$1"
+    # brez končnice
+    local stem="${fbase%.*}"
+
+    # normaliziraj različne pomišljaje v navaden " - "
+    stem=$(printf '%s' "$stem" | sed 's/[–—‐-–]/-/g')
+
+    # odstrani vse oklepajne opombe ((), [], {})
+    stem=$(printf '%s' "$stem" | sed 's/([^(]*)//g; s/\[[^]]*\]//g; s/{[^}]*}//g')
+
+    # odstrani “feat.”, “ft.”, “featuring” ipd. (in morebitno nadaljevanje)
+    stem=$(printf '%s' "$stem" | sed -E 's/[[:space:]]+(feat\.|ft\.|featuring)[[:space:]].*$//I')
+
+    # preslikaj podčrtaje v presledke, strni presledke
+    stem=$(printf '%s' "$stem" | tr '_' ' ' | sed 's/[[:space:]]\+/ /g; s/^[[:space:]]*//; s/[[:space:]]*$//')
+
+    # heuristika: če je točno en '-' in ima ob straneh presledek → "Artist - Title"
+    # (pazi: lahko je v imenu še kakšen '-'; zato raje štejemo pojavitev s sed)
+    local dashcount
+    dashcount=$(printf '%s' "$stem" | awk -F' - ' '{print NF-1}')
+    local artist="" title=""
+
+    if [ "$dashcount" -eq 1 ]; then
+      artist=$(printf '%s' "$stem" | awk -F' - ' '{print $1}')
+      title=$(printf '%s' "$stem" | awk -F' - ' '{print $2}')
+    else
+      # poskusi še z navadnim '-' brez presledkov okrog
+      dashcount=$(printf '%s' "$stem" | awk -F'-' '{print NF-1}')
+      if [ "$dashcount" -eq 1 ]; then
+        artist=$(printf '%s' "$stem" | awk -F'-' '{print $1}')
+        title=$(printf '%s' "$stem" | awk -F'-' '{print $2}')
+      else
+        # brez jasnega ločila: vse je "title"
+        title="$stem"
+      fi
+    fi
+
+    # slugify oba
+    local akey tkey
+    akey=$(printf '%s' "$artist" | _slugify)
+    tkey=$(printf '%s' "$title"  | _slugify)
+    printf '%s|%s' "$akey" "$tkey"
+  }
+
+  # -------------------
+  # Brez argumentov → help
+  # -------------------
+  [ $# -eq 0 ] && { show_help; return 0; }
+
+  local dir="."
+  local dryrun=0 force=0 started=0
+  local verbose=0 show_progress=1 stats_every=25
+  local mode="both" show_keys=0
+
+  # parser
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -s|--start) started=1; shift ;;
+      --dry-run)  dryrun=1; shift ;;
+      --force)    force=1;  shift ;;
+      -v|--verbose) verbose=1; shift ;;
+      --no-progress) show_progress=0; shift ;;
+      --stats-every)
+        shift
+        [[ "$1" =~ ^[0-9]+$ ]] || { echo "Napaka: --stats-every potrebuje celo število." >&2; return 2; }
+        stats_every="$1"; shift ;;
+      --mode)
+        shift
+        case "$1" in
+          tags|name|both) mode="$1"; shift ;;
+          *) echo "Napaka: --mode mora biti tags|name|both" >&2; return 2 ;;
+        esac ;;
+      --show-keys) show_keys=1; shift ;;
+      -h|--help)  show_help; return 0 ;;
+      --) shift; break ;;
+      -*)
+        echo "Neznana možnost: $1" >&2
+        echo "Glej: dupes --help" >&2
+        return 2 ;;
+      *)
+        dir="$1"; shift ;;
+    esac
+  done
+
+  [ $started -ne 1 ] && { echo "Manjka -s/--start. Glej: dupes --help" >&2; return 2; }
+  command -v ffprobe >/dev/null 2>&1 || { echo "Napaka: ffprobe ni nameščen (sudo eopkg it ffmpeg)." >&2; return 2; }
+  [ -d "$dir" ] || { echo "Napaka: mapa '$dir' ne obstaja." >&2; return 2; }
+
+  shopt -s nullglob
+
+  # zberi .ogg, da imamo total in % napredek
+  local -a files
+  while IFS= read -r -d '' f; do files+=( "$f" ); done < <(find "$dir" -type f -iname '*.ogg' -print0)
+  local total=${#files[@]}
+  [ "$total" -eq 0 ] && { echo "Ni .ogg datotek v: $dir"; return 0; }
+
+  # stanje
+  local scanned=0 tagged=0 named=0 skipped=0
+  declare -A bestfile bestdur
+  declare -a todel
+  declare -a dbgkeys
+
+  _print_status() {
+    [ $show_progress -eq 0 ] && return 0
+    local groups=${#bestfile[@]}
+    local delcount=${#todel[@]}
+    local keep=$groups
+    local pct=0
+    [ "$total" -gt 0 ] && pct=$(( scanned * 100 / total ))
+    printf "\r[%3d%%] prebrano:%-6d tags:%-6d imena:%-6d preskočenih:%-6d skupin:%-6d za-brisati:%-6d obdržanih:%-6d" \
+      "$pct" "$scanned" "$tagged" "$named" "$skipped" "$groups" "$delcount" "$keep"
+  }
+
+  # glavna zanka
+  for f in "${files[@]}"; do
+    scanned=$((scanned+1))
+
+    local use_key="" key_src=""
+    local artist title akey tkey key dur
+
+    if [ "$mode" != "name" ]; then
+      # poskusi TAG-e
+      artist=$(ffprobe -v error -show_entries format_tags=artist -of default=nw=1:nk=1 "$f" 2>/dev/null)
+      title=$(ffprobe -v error -show_entries format_tags=title  -of default=nw=1:nk=1 "$f" 2>/dev/null)
+      if [ -n "$artist" ] && [ -n "$title" ]; then
+        akey=$(printf '%s' "$artist" | _slugify)
+        tkey=$(printf '%s' "$title"  | _slugify)
+        use_key="$akey|$tkey"
+        key_src="tags"
+        tagged=$((tagged+1))
+      fi
+    fi
+
+    if [ -z "$use_key" ] && [ "$mode" != "tags" ]; then
+      # FALLBACK: po imenu
+      local base
+      base=$(basename -- "$f")
+      use_key=$(_key_from_filename "$base")
+      key_src="name"
+      # zaznaj “praznega” ključ (npr. samo |title ali celo prazen niz)
+      [ -n "$use_key" ] && named=$((named+1))
+    fi
+
+    # če nismo dobili uporabnega ključa, preskoči
+    if [ -z "$use_key" ] || [ "$use_key" = "|" ]; then
+      skipped=$((skipped+1))
+      [ $verbose -eq 1 ] && echo -e "\n[SKIP] Brez uporabnega ključa → $f"
+      [ $show_progress -eq 1 ] && [ $((scanned % stats_every)) -eq 0 ] && _print_status
+      continue
+    fi
+
+    # trajanje
+    dur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$f" 2>/dev/null)
+    awk 'BEGIN{exit(ARGV[1]==ARGV[1]+0?0:1)}' "$dur" >/dev/null 2>&1 || dur=0
+
+    # diagnostika ključev (naključno nekaj zabeležimo)
+    if [ "$show_keys" -eq 1 ] && [ "${#dbgkeys[@]}" -lt 12 ]; then
+      dbgkeys+=( "$(printf '%s  |  %s' "$use_key" "$key_src")" )
+    fi
+
+    if [ -z "${bestfile[$use_key]+set}" ]; then
+      bestfile["$use_key"]="$f"
+      bestdur["$use_key"]="$dur"
+      [ $verbose -eq 1 ] && echo -e "\n[KEEP:$key_src] $(basename -- "$f")  (dur=${dur}s)  key=$use_key"
+    else
+      if awk -v a="$dur" -v b="${bestdur[$use_key]}" 'BEGIN{exit(a>b?0:1)}'; then
+        [ $verbose -eq 1 ] && echo -e "\n[REPLACE:$key_src] $(basename -- "$f") (${dur}s) > $(basename -- "${bestfile[$use_key]}") (${bestdur[$use_key]}s)"
+        todel+=( "${bestfile[$use_key]}" )
+        bestfile["$use_key"]="$f"
+        bestdur["$use_key"]="$dur"
+      else
+        [ $verbose -eq 1 ] && echo -e "\n[DROP:$key_src] $(basename -- "$f") (${dur}s) <= ${bestdur[$use_key]}s"
+        todel+=( "$f" )
+      fi
+    fi
+
+    [ $show_progress -eq 1 ] && [ $((scanned % stats_every)) -eq 0 ] && _print_status
+  done
+
+  [ $show_progress -eq 1 ] && { _print_status; echo; }
+
+  if [ "${#todel[@]}" -eq 0 ]; then
+    echo "Ni najdenih duplikatov (po načinu: $mode)."
+    if [ "$show_keys" -eq 1 ] && [ "${#dbgkeys[@]}" -gt 0 ]; then
+      echo "Primeri uporabljenih ključev:"
+      printf '  %s\n' "${dbgkeys[@]}"
+    fi
+    return 0
+  fi
+
+  echo "---------------------------------------------"
+  echo "POVZETEK (način: $mode):"
+  echo "  Skupaj .ogg:                $total"
+  echo "  Prebranih:                  $scanned"
+  echo "  Uporabni TAG-i:             $tagged"
+  echo "  Uporabna imena:             $named"
+  echo "  Preskočenih:                $skipped"
+  echo "  Skupin (unikatnih ključev): ${#bestfile[@]}"
+  echo "  Za brisanje:                ${#todel[@]}"
+  echo "---------------------------------------------"
+
+  if [ "$show_keys" -eq 1 ] && [ "${#dbgkeys[@]}" -gt 0 ]; then
+    echo "Primeri ključev (key | izvor):"
+    printf '  %s\n' "${dbgkeys[@]}"
+    echo "---------------------------------------------"
+  fi
+
+  for f in "${todel[@]}"; do
+    echo "DEL → $f"
+  done
+
+  if command -v du >/dev/null 2>&1; then
+    echo
+    echo "Skupna velikost za odstraniti:"
+    du -ch -- "${todel[@]}" 2>/dev/null | tail -n1
+  fi
+
+  if [ "$dryrun" -eq 1 ]; then
+    echo
+    echo "DRY-RUN: nič ni bilo izbrisano."
+    return 0
+  fi
+
+  if [ "$force" -ne 1 ]; then
+    echo
+    read -r -p "Želiš izbrisati te datoteke? [y/N] " ans
+    case "$ans" in
+      y|Y|yes|YES) ;;
+      *) echo "Preklicano."; return 0 ;;
+    esac
+  fi
+
+  local fail=0
+  for f in "${todel[@]}"; do
+    rm -f -- "$f" || { echo "Neuspeh brisanja: $f" >&2; fail=1; }
+  done
+
+  if [ $fail -eq 0 ]; then
+    echo "Končano. Duplikati odstranjeni, najdaljše verzije ohranjene."
+  else
+    echo "Delno končano (nekaterih datotek ni bilo mogoče izbrisati)." >&2
+    return 1
+  fi
 }
 alias py='python3 $1'
 alias wd_restart='sudo systemctl restart waydroid-container.service'
