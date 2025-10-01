@@ -1,3 +1,6 @@
+# za wine/lutris/steam igre
+export PULSE_LATENCY_MSEC=400
+#
 source /usr/share/defaults/etc/profile
 export JAVA_HOME=/usr/lib64/openjdk-17
 export PATH=/opt/lampp/bin:$JAVA_HOME/bin:$PATH
@@ -102,8 +105,6 @@ alias spremembe="find . -type f -printf '%T@ %p\n' | sort -n | tail -n 10"
 alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/$USER/.local/share/gvfs-metadata/home"
 alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixwinesound='mkdir -p /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | tee /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
-alias fixwinesoundsys='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d && echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}]" | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
 alias fixflatpak='flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
@@ -146,6 +147,7 @@ alias fixrtw88='sudo mkdir -p /etc/modprobe.d && echo "blacklist rtw88_8822bu" |
 alias fixjava='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java'
 alias fixspicecap='f=$(find /usr -name spice-client-glib-usb-acl-helper 2>/dev/null | head -n1) && (getcap "$f" | grep -q cap && sudo setcap -r "$f" && echo "✔ Capabilities removed from $f" || echo "ℹ️  No capabilities to remove in $f")'
 alias fixmailspring='xdg-mime default mailspring.desktop x-scheme-handler/mailto'
+alias fixnetstat='sudo ln -s /usr/sbin/ss /usr/bin/netstat'
 #
 exportpod() {
   if [ -z "$1" ]; then
@@ -534,7 +536,7 @@ alias myinstall_rm='sudo eopkg rm -y celluloid snapshot solus-sc solus-sc-icons'
 alias myinstall_dev='sudo eopkg it -y -c system.devel git linux-current-headers'
 alias myinstall='sudo eopkg it -y fonts-installer parallel nethogs gnome-software diodon python3-tkinter pip waydroid gufw upx xdotool iw enca btop firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
 #
-alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixmailspring; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4;wifi-power-disable"
+alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixmailspring; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4;wifi-power-disable"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
