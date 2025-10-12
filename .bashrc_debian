@@ -1,23 +1,50 @@
-# debian           #
-####################
-# .bashrc by BArko #
-####################
-#
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
 case $- in
     *i*) ;;
       *) return;;
 esac
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
 HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
 shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=1000
 HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
 shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# make less more friendly for non-text input files, see lesspipe(1)
+#[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes;;
 esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
 	# We have color support; assume it's compliant with Ecma-48
@@ -28,12 +55,15 @@ if [ -n "$force_color_prompt" ]; then
 	color_prompt=
     fi
 fi
+
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
@@ -41,13 +71,39 @@ xterm*|rxvt*)
 *)
     ;;
 esac
+
+# enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    #alias grep='grep --color=auto'
+    #alias fgrep='fgrep --color=auto'
+    #alias egrep='egrep --color=auto'
 fi
+
+# colored GCC warnings and errors
+#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+# some more ls aliases
+#alias ll='ls -l'
+#alias la='ls -A'
+#alias l='ls -CF'
+
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
+
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
@@ -55,30 +111,13 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-XDG_DATA_DIRS="/var/lib/flatpak/exports/share:/home/$USER/.local/share/flatpak/exports/share:$XDG_DATA_DIRS"
-export XDG_DATA_DIRS
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-fi
-export PATH
-test -s ~/.alias && . ~/.alias || true
-kopiraj_fun() {
-    if [ "$#" -ge 2 ]; then
-        echo -n "Ste prepričani, da želite nadaljevati? (D/N): "
-        read -r odgovor
-        odgovor=$(echo "$odgovor" | tr '[:upper:]' '[:lower:]')
-        if [ "$odgovor" = "d" ]; then
-            sudo rsync -a --info=progress2 --delete "$@"
-        else
-            echo "Operacija preklicana."
-        fi
-    else
-        echo "Uporaba: kopiraj vir cilj [dodatni parametri rsync]"
-    fi
-}
-alias kopiraj='kopiraj_fun'
-alias gpt='function _chatgpt() {
-  response=$(curl -s https://api.openai.com/v1/chat/completions \
+# BARKO START
+# za wine/lutris/steam igre
+export PULSE_LATENCY_MSEC=400
+#
+gpt() {
+  local prompt="$*"
+  local response=$(curl -s https://api.openai.com/v1/chat/completions \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -d "{
@@ -90,12 +129,13 @@ alias gpt='function _chatgpt() {
         },
         {
           \"role\": \"user\",
-          \"content\": \"$*\"
+          \"content\": \"${prompt}\"
         }
       ]
     }")
-  echo $response | jq -r '.choices[0].message.content'
-}; _chatgpt'
+  echo "$response" | jq -r '.choices[0].message.content'
+}
+#
 fixgd() {
     if [ -f "$1" ]; then
         sed -i 's/"showWatermark": true/"showWatermark": false/g' "$1"
@@ -109,11 +149,31 @@ fixgd() {
 export EDITOR=nano
 export VISUAL=nano
 alias top='btop'
-alias toutf8tmp='for file in *.srt; do encoding=$(enca -i "$file"); if [ "$encoding" != "UTF-8" ]; then iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp" && mv "${file}.tmp" "$file"; else echo "$file je že v UTF-8"; fi; done'
-alias removeitmp='for file in *.srt; do sed -i "s/<i>//g; s/<\/i>//g" "$file"; done'
-alias toutf8="toutf8tmp;removeitmp"
+toutf8() {
+    for file in *.srt; do
+        # Zaznaj kodiranje
+        encoding=$(enca -i "$file")
+
+        if [ "$encoding" != "UTF-8" ]; then
+            # Pretvori v UTF-8 v začasno datoteko
+            if iconv -f "$encoding" -t "UTF-8" "$file" -o "${file}.tmp"; then
+                mv "${file}.tmp" "$file"
+                echo "$file pretvorjen v UTF-8"
+            else
+                echo "Napaka pri pretvorbi: $file" >&2
+                continue
+            fi
+        else
+            echo "$file je že v UTF-8"
+        fi
+
+        # Odstrani <i> in </i>
+        sed -i 's/<i>//g; s/<\/i>//g' "$file"
+    done
+}
 alias df='df -H'
 alias updatedb='sudo updatedb'
+alias locate='sudo locate'
 alias bios='sudo dmidecode -s bios-version'
 alias reboot='sudo reboot'
 alias iotop='sudo iotop'
@@ -127,8 +187,8 @@ alias spremembe="find . -type f -printf '%T@ %p\n' | sort -n | tail -n 10"
 alias icons_restore="cp /home/$USER/.local/share/gvfs-metadata/home.$USER /home/$USER/.local/share/gvfs-metadata/home"
 alias icons_backup="cp /home/$USER/.local/share/gvfs-metadata/home /home/$USER/.local/share/gvfs-metadata/home.$USER"
 alias fixopenfolder='xdg-mime default org.gnome.Nautilus.desktop inode/directory'
-alias fixwinesound='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixflatpakicons='flatpak --user override --filesystem=~/.local/share/icons/:ro'
+alias fixflatpak='flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo'
 alias fixicons='gsettings set org.gnome.desktop.interface icon-theme "Hatter"'
 alias fixmaxsound="gsettings set org.gnome.desktop.sound allow-volume-above-100-percent 'true'"
 alias fixwait="gsettings set org.gnome.mutter check-alive-timeout 60000"
@@ -140,26 +200,441 @@ alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
-alias fixmaxmapcount='echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
+alias fixmaxmapcount='sudo mkdir -p /etc/sysctl.d; echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
 alias fixkvm="sudo systemctl enable --now libvirtd"
 alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
 alias fixm2026='sudo ln -s /opt/smfp-common/printer/bin/rastertospl /usr/lib/cups/filter/rastertosplc'
-alias install_wifi='echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf && ([ -d /usr/src/rtl88x2bu-git ] && (cd /usr/src/rtl88x2bu-git && sudo git pull) || sudo git clone "https://github.com/RinCat/RTL88x2BU-Linux-Driver" /usr/src/rtl88x2bu-git) && sudo sed -i "s/PACKAGE_VERSION=\"@PKGVER@\"/PACKAGE_VERSION=\"git\"/g" /usr/src/rtl88x2bu-git/dkms.conf && sudo dkms add -m rtl88x2bu -v git && sudo dkms autoinstall --force'
-alias uninstall_wifi='sudo dkms remove rtl88x2bu/git --all && sudo rm -rf /usr/src/rtl88x2bu-git && sudo rm /etc/modprobe.d/rtw8822bu.conf'
-alias update_wifi='cd /usr/src/rtl88x2bu-git && sudo git fetch && UPSTREAM=${1:-'@{u}'}; LOCAL=$(sudo git rev-parse @); REMOTE=$(sudo git rev-parse "$UPSTREAM"); BASE=$(sudo git merge-base @ "$UPSTREAM"); if [ $LOCAL = $REMOTE ]; then echo "Already up to date."; else sudo git pull && sudo dkms build rtl88x2bu/git --force && sudo dkms install rtl88x2bu/git --force; fi'
-alias backup="kopiraj /home/barko/ /media/barko/L_BACKUPS/barko/"
+alias fixdbox="sudo touch /etc/subuid /etc/subgid && sudo chmod 644 /etc/subuid /etc/subgid && sudo usermod --add-subuids 100000-165536 --add-subgids 100000-165536 $USER"
+alias fixpodman1='sudo touch /etc/subuid /etc/subgid; sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER'
+alias fixpodman2='mkdir -p $HOME/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > $HOME/.config/containers/containers.conf'
+alias fixwaydnet='sudo ufw allow 53 && sudo ufw allow 67 && sudo ufw default allow FORWARD'
+alias fixbtrfs='sudo btrfs quota disable /'
+alias fixsteamoldcpu1='echo "STEAM_HACK_IGNORE_HWCAPS=1" | sudo tee /etc/environment'
+# reboot
+alias fixsteamoldcpu2='sudo ldconfig -X'
+cleanoldkernels() { current=$(uname -r | sed "s/-.*//"); kernels=($(eopkg list-installed | awk '/^linux-/{print $1}' | sort -V -r)); active=""; for k in "${kernels[@]}"; do ver=${k#linux-}; [[ "$current" == "$ver"* ]] && { active=$k; break; }; done; [[ -z "$active" ]] && return; [[ "${kernels[0]}" == "$active" ]] && penultimate=${kernels[1]} || penultimate=${kernels[0]}; for k in "${kernels[@]}"; do [[ "$k" != "$active" && "$k" != "$penultimate" ]] && sudo eopkg remove -y "$k"; done; }
+alias toac3='f(){ [ -z "$1" ] && echo "⚠️ Uporaba: dts2ac3 <datoteka.mkv>" && return 1; [ ! -f "$1" ] && echo "❌ Napaka: datoteka ne obstaja." && return 1; ffmpeg -i "$1" -map 0 -c:v copy -c:a ac3 -b:a 640k -c:s copy "${1%.*}_ac3.mkv"; }; f'
+alias spisek='ls -1d */ | sed "s:/$::" | awk "{print \"flatpak install -y flathub \" \$0}" > spisek'
+alias db='distrobox'
+# debian - ker se kar naprej motim
+#alias ubuntu='distrobox enter ubuntu'
+#alias debian='distrobox enter debian'
 alias xampp="sudo /opt/lampp/xampp"
-alias xs="xampp restart &>/dev/null"
-alias xst="xampp stop"
-alias bakc="cp '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite' '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite.bak'"
-alias resc="cp '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite.bak' '/home/$USER/.var/app/app.zen_browser.zen/.zen/ujeym56l.Default (release)/cookies.sqlite'"
-alias fixall="fixmaxmapcount; fixvirbox; fixwinesound; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4"
+alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
+alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
+#alias fixrtw88='sudo mkdir -p /etc/modprobe.d && echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf > /dev/null'
+#alias fixjava='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java'
+alias fixspicecap='f=$(find /usr -name spice-client-glib-usb-acl-helper 2>/dev/null | head -n1) && (getcap "$f" | grep -q cap && sudo setcap -r "$f" && echo "✔ Capabilities removed from $f" || echo "ℹ️  No capabilities to remove in $f")'
+alias fixmailspring='xdg-mime default mailspring.desktop x-scheme-handler/mailto'
+alias fixnetstat='sudo ln -s /usr/sbin/ss /usr/bin/netstat'
+#
+exportpod() {
+  if [ -z "$1" ]; then
+    echo "Uporaba: exportpod <ime_kontejnerja>"
+  elif podman container exists "$1"; then
+    podman export -o "$1.tar" "$1"
+  else
+    echo "Kontejner '$1' ne obstaja"
+  fi
+}
+#
+importpod() {
+  if [ -z "$1" ]; then
+    echo "Uporaba: importpod <ime_datoteke.tar>"
+  elif [ -f "$1" ]; then
+    podman import "$1"
+  else
+    echo "Datoteka '$1' ne obstaja"
+  fi
+}
+#
+ffsys() {
+  mkdir -p srts && \
+  find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" \) | while read -r video; do
+    srt="${video%.*}.srt"
+    [ -f "$srt" ] || continue
+    cp "$srt" srts/ && ffsubsync "$video" -i "$srt" -o "$srt"
+  done
+}
+#
+function fixbroken {
+  ( sudo eopkg check 2>&1 || true ) | tee /dev/stderr \
+    | awk '/^Broken/ { print $4 } /Cannot calculate SHA1 hash of/ { print $NF }' \
+    | while read -r item; do
+        pkg=$(eopkg whatprovides "$item" 2>/dev/null | head -n1)
+        if [ -n "$pkg" ]; then
+          echo "Reinstalliram: $pkg"
+          sudo eopkg it --reinstall "$pkg"
+        else
+          echo "Opozorilo: ne najdem paketa za »$item«"
+        fi
+      done
+}
+#
+compilepy() {
+    local file="$1"
+    local filename="$(basename "$file" .py)"
+
+    echo "Kompiliram $file..."
+    pyinstaller --onefile --windowed "$file" || {
+        echo "Napaka med izvajanjem PyInstallerja."
+        return 1
+    }
+
+    local executable="dist/$filename"
+    if [ -f "$executable" ]; then
+        echo "Premikam izvršljivo datoteko v trenutno mapo..."
+        mv "$executable" . || {
+            echo "Premik ni uspel."
+            return 1
+        }
+    else
+        echo "Napaka: izvršljiva datoteka $executable ni bila ustvarjena."
+        return 1
+    fi
+
+    echo "Odstranjujem build, dist in .spec datoteko..."
+    rm -rf build dist "$filename.spec"
+    echo "Končano."
+}
+get_wmclass_interactive() {
+  # izberi okno
+  local wid=$(xdotool selectwindow)
+  # vrni razred
+  xprop -id "$wid" WM_CLASS | awk -F\" '{ print $4 }'
+}
+dupes() {
+  # =========================================
+  # Orodje za odstranjevanje .ogg duplikatov
+  # Primarno: ARTIST+TITLE iz tagov
+  # Fallback/alternativa: ujemanje po imenu datoteke (normalizirano)
+  # Ohranimo najdaljši posnetek (po trajanju)
+  # =========================================
+
+  show_help() {
+    cat <<'EOF'
+Uporaba:
+  dupes -s [MAPA] [možnosti]
+
+Možnosti:
+  -s, --start          ZAČNI iskanje in obdelavo (obvezno)
+  --dry-run            Ne briši, samo izpiši, kaj bi šlo v koš
+  --force              Briši brez potrditve
+  -v,  --verbose       Podroben izpis odločitev
+  --no-progress        Skrij sprotni status
+  --stats-every N      Pogostost posodobitev napredka (privzeto: 25)
+  --mode MODE          Način ujemanja duplikatov:
+                       tags  = samo po tagih ARTIST+TITLE
+                       name  = samo po imenu datoteke
+                       both  = najprej tags, sicer name (privzeto)
+  --show-keys          Na koncu pokaži nekaj ključev (za diagnostiko)
+  -h, --help           Pokaži to pomoč
+
+Primeri:
+  dupes -s --mode both                 # tags ali (če manjkajo) po imenu
+  dupes -s /pot --dry-run --verbose    # preizkus, podrobni logi
+  dupes -s --mode name                 # samo po imenu datotek
+
+Opombe:
+  - Potrebuje ffprobe (paket ffmpeg).
+  - "Ime" se normalizira: odstrani oklepaje/oznake (npr. "(live)", "[remastered]"),
+    "feat./ft./featuring", različne pomišljaje, diakritiko in presežne presledke.
+  - Hevristika imena:
+      "Izvajalec - Naslov" ali "Izvajalec – Naslov" (če je točno en pomišljaj).
+    V drugih primerih se celoten naziv obravnava kot naslov brez izvajalca.
+EOF
+  }
+
+  # -------------------------------
+  # Pomožne: slugify (ASCII, lower)
+  # -------------------------------
+  _slugify() {
+    # → niz: pretvori v ASCII (TRANSLIT), zamenjaj ne-alfanumerične v presledek,
+    # strni presledke, odreži robove, v lower-case.
+    # opomba: iconv je del glibc (tudi na Solusu)
+    LC_ALL=C \
+    iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null \
+    | sed "s/['\"]/ /g" \
+    | tr -c '[:alnum:]' ' ' \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed 's/[[:space:]]\+/ /g; s/^[[:space:]]*//; s/[[:space:]]*$//'
+  }
+
+  # -----------------------------------------
+  # Pomožne: normaliziraj "ime skladbe" iz file name
+  # -----------------------------------------
+  _key_from_filename() {
+    local fbase="$1"
+    # brez končnice
+    local stem="${fbase%.*}"
+
+    # normaliziraj različne pomišljaje v navaden " - "
+    stem=$(printf '%s' "$stem" | sed 's/[–—‐-–]/-/g')
+
+    # odstrani vse oklepajne opombe ((), [], {})
+    stem=$(printf '%s' "$stem" | sed 's/([^(]*)//g; s/\[[^]]*\]//g; s/{[^}]*}//g')
+
+    # odstrani “feat.”, “ft.”, “featuring” ipd. (in morebitno nadaljevanje)
+    stem=$(printf '%s' "$stem" | sed -E 's/[[:space:]]+(feat\.|ft\.|featuring)[[:space:]].*$//I')
+
+    # preslikaj podčrtaje v presledke, strni presledke
+    stem=$(printf '%s' "$stem" | tr '_' ' ' | sed 's/[[:space:]]\+/ /g; s/^[[:space:]]*//; s/[[:space:]]*$//')
+
+    # heuristika: če je točno en '-' in ima ob straneh presledek → "Artist - Title"
+    # (pazi: lahko je v imenu še kakšen '-'; zato raje štejemo pojavitev s sed)
+    local dashcount
+    dashcount=$(printf '%s' "$stem" | awk -F' - ' '{print NF-1}')
+    local artist="" title=""
+
+    if [ "$dashcount" -eq 1 ]; then
+      artist=$(printf '%s' "$stem" | awk -F' - ' '{print $1}')
+      title=$(printf '%s' "$stem" | awk -F' - ' '{print $2}')
+    else
+      # poskusi še z navadnim '-' brez presledkov okrog
+      dashcount=$(printf '%s' "$stem" | awk -F'-' '{print NF-1}')
+      if [ "$dashcount" -eq 1 ]; then
+        artist=$(printf '%s' "$stem" | awk -F'-' '{print $1}')
+        title=$(printf '%s' "$stem" | awk -F'-' '{print $2}')
+      else
+        # brez jasnega ločila: vse je "title"
+        title="$stem"
+      fi
+    fi
+
+    # slugify oba
+    local akey tkey
+    akey=$(printf '%s' "$artist" | _slugify)
+    tkey=$(printf '%s' "$title"  | _slugify)
+    printf '%s|%s' "$akey" "$tkey"
+  }
+
+  # -------------------
+  # Brez argumentov → help
+  # -------------------
+  [ $# -eq 0 ] && { show_help; return 0; }
+
+  local dir="."
+  local dryrun=0 force=0 started=0
+  local verbose=0 show_progress=1 stats_every=25
+  local mode="both" show_keys=0
+
+  # parser
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -s|--start) started=1; shift ;;
+      --dry-run)  dryrun=1; shift ;;
+      --force)    force=1;  shift ;;
+      -v|--verbose) verbose=1; shift ;;
+      --no-progress) show_progress=0; shift ;;
+      --stats-every)
+        shift
+        [[ "$1" =~ ^[0-9]+$ ]] || { echo "Napaka: --stats-every potrebuje celo število." >&2; return 2; }
+        stats_every="$1"; shift ;;
+      --mode)
+        shift
+        case "$1" in
+          tags|name|both) mode="$1"; shift ;;
+          *) echo "Napaka: --mode mora biti tags|name|both" >&2; return 2 ;;
+        esac ;;
+      --show-keys) show_keys=1; shift ;;
+      -h|--help)  show_help; return 0 ;;
+      --) shift; break ;;
+      -*)
+        echo "Neznana možnost: $1" >&2
+        echo "Glej: dupes --help" >&2
+        return 2 ;;
+      *)
+        dir="$1"; shift ;;
+    esac
+  done
+
+  [ $started -ne 1 ] && { echo "Manjka -s/--start. Glej: dupes --help" >&2; return 2; }
+  command -v ffprobe >/dev/null 2>&1 || { echo "Napaka: ffprobe ni nameščen (sudo eopkg it ffmpeg)." >&2; return 2; }
+  [ -d "$dir" ] || { echo "Napaka: mapa '$dir' ne obstaja." >&2; return 2; }
+
+  shopt -s nullglob
+
+  # zberi .ogg, da imamo total in % napredek
+  local -a files
+  while IFS= read -r -d '' f; do files+=( "$f" ); done < <(find "$dir" -type f -iname '*.ogg' -print0)
+  local total=${#files[@]}
+  [ "$total" -eq 0 ] && { echo "Ni .ogg datotek v: $dir"; return 0; }
+
+  # stanje
+  local scanned=0 tagged=0 named=0 skipped=0
+  declare -A bestfile bestdur
+  declare -a todel
+  declare -a dbgkeys
+
+  _print_status() {
+    [ $show_progress -eq 0 ] && return 0
+    local groups=${#bestfile[@]}
+    local delcount=${#todel[@]}
+    local keep=$groups
+    local pct=0
+    [ "$total" -gt 0 ] && pct=$(( scanned * 100 / total ))
+    printf "\r[%3d%%] prebrano:%-6d tags:%-6d imena:%-6d preskočenih:%-6d skupin:%-6d za-brisati:%-6d obdržanih:%-6d" \
+      "$pct" "$scanned" "$tagged" "$named" "$skipped" "$groups" "$delcount" "$keep"
+  }
+
+  # glavna zanka
+  for f in "${files[@]}"; do
+    scanned=$((scanned+1))
+
+    local use_key="" key_src=""
+    local artist title akey tkey key dur
+
+    if [ "$mode" != "name" ]; then
+      # poskusi TAG-e
+      artist=$(ffprobe -v error -show_entries format_tags=artist -of default=nw=1:nk=1 "$f" 2>/dev/null)
+      title=$(ffprobe -v error -show_entries format_tags=title  -of default=nw=1:nk=1 "$f" 2>/dev/null)
+      if [ -n "$artist" ] && [ -n "$title" ]; then
+        akey=$(printf '%s' "$artist" | _slugify)
+        tkey=$(printf '%s' "$title"  | _slugify)
+        use_key="$akey|$tkey"
+        key_src="tags"
+        tagged=$((tagged+1))
+      fi
+    fi
+
+    if [ -z "$use_key" ] && [ "$mode" != "tags" ]; then
+      # FALLBACK: po imenu
+      local base
+      base=$(basename -- "$f")
+      use_key=$(_key_from_filename "$base")
+      key_src="name"
+      # zaznaj “praznega” ključ (npr. samo |title ali celo prazen niz)
+      [ -n "$use_key" ] && named=$((named+1))
+    fi
+
+    # če nismo dobili uporabnega ključa, preskoči
+    if [ -z "$use_key" ] || [ "$use_key" = "|" ]; then
+      skipped=$((skipped+1))
+      [ $verbose -eq 1 ] && echo -e "\n[SKIP] Brez uporabnega ključa → $f"
+      [ $show_progress -eq 1 ] && [ $((scanned % stats_every)) -eq 0 ] && _print_status
+      continue
+    fi
+
+    # trajanje
+    dur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$f" 2>/dev/null)
+    awk 'BEGIN{exit(ARGV[1]==ARGV[1]+0?0:1)}' "$dur" >/dev/null 2>&1 || dur=0
+
+    # diagnostika ključev (naključno nekaj zabeležimo)
+    if [ "$show_keys" -eq 1 ] && [ "${#dbgkeys[@]}" -lt 12 ]; then
+      dbgkeys+=( "$(printf '%s  |  %s' "$use_key" "$key_src")" )
+    fi
+
+    if [ -z "${bestfile[$use_key]+set}" ]; then
+      bestfile["$use_key"]="$f"
+      bestdur["$use_key"]="$dur"
+      [ $verbose -eq 1 ] && echo -e "\n[KEEP:$key_src] $(basename -- "$f")  (dur=${dur}s)  key=$use_key"
+    else
+      if awk -v a="$dur" -v b="${bestdur[$use_key]}" 'BEGIN{exit(a>b?0:1)}'; then
+        [ $verbose -eq 1 ] && echo -e "\n[REPLACE:$key_src] $(basename -- "$f") (${dur}s) > $(basename -- "${bestfile[$use_key]}") (${bestdur[$use_key]}s)"
+        todel+=( "${bestfile[$use_key]}" )
+        bestfile["$use_key"]="$f"
+        bestdur["$use_key"]="$dur"
+      else
+        [ $verbose -eq 1 ] && echo -e "\n[DROP:$key_src] $(basename -- "$f") (${dur}s) <= ${bestdur[$use_key]}s"
+        todel+=( "$f" )
+      fi
+    fi
+
+    [ $show_progress -eq 1 ] && [ $((scanned % stats_every)) -eq 0 ] && _print_status
+  done
+
+  [ $show_progress -eq 1 ] && { _print_status; echo; }
+
+  if [ "${#todel[@]}" -eq 0 ]; then
+    echo "Ni najdenih duplikatov (po načinu: $mode)."
+    if [ "$show_keys" -eq 1 ] && [ "${#dbgkeys[@]}" -gt 0 ]; then
+      echo "Primeri uporabljenih ključev:"
+      printf '  %s\n' "${dbgkeys[@]}"
+    fi
+    return 0
+  fi
+
+  echo "---------------------------------------------"
+  echo "POVZETEK (način: $mode):"
+  echo "  Skupaj .ogg:                $total"
+  echo "  Prebranih:                  $scanned"
+  echo "  Uporabni TAG-i:             $tagged"
+  echo "  Uporabna imena:             $named"
+  echo "  Preskočenih:                $skipped"
+  echo "  Skupin (unikatnih ključev): ${#bestfile[@]}"
+  echo "  Za brisanje:                ${#todel[@]}"
+  echo "---------------------------------------------"
+
+  if [ "$show_keys" -eq 1 ] && [ "${#dbgkeys[@]}" -gt 0 ]; then
+    echo "Primeri ključev (key | izvor):"
+    printf '  %s\n' "${dbgkeys[@]}"
+    echo "---------------------------------------------"
+  fi
+
+  for f in "${todel[@]}"; do
+    echo "DEL → $f"
+  done
+
+  if command -v du >/dev/null 2>&1; then
+    echo
+    echo "Skupna velikost za odstraniti:"
+    du -ch -- "${todel[@]}" 2>/dev/null | tail -n1
+  fi
+
+  if [ "$dryrun" -eq 1 ]; then
+    echo
+    echo "DRY-RUN: nič ni bilo izbrisano."
+    return 0
+  fi
+
+  if [ "$force" -ne 1 ]; then
+    echo
+    read -r -p "Želiš izbrisati te datoteke? [y/N] " ans
+    case "$ans" in
+      y|Y|yes|YES) ;;
+      *) echo "Preklicano."; return 0 ;;
+    esac
+  fi
+
+  local fail=0
+  for f in "${todel[@]}"; do
+    rm -f -- "$f" || { echo "Neuspeh brisanja: $f" >&2; fail=1; }
+  done
+
+  if [ $fail -eq 0 ]; then
+    echo "Končano. Duplikati odstranjeni, najdaljše verzije ohranjene."
+  else
+    echo "Delno končano (nekaterih datotek ni bilo mogoče izbrisati)." >&2
+    return 1
+  fi
+}
+alias py='python3 $1'
+alias wd_restart='sudo systemctl restart waydroid-container.service'
+alias wifi-power-disable='echo -e "[connection]\nwifi.powersave = 2" | sudo tee /etc/NetworkManager/conf.d/wifi-powersave-off.conf > /dev/null && sudo systemctl restart NetworkManager'
+function fixtmp {
+    if [ "$1" = "soft" ]; then
+        echo "Čistim /tmp po pravilih (systemd-tmpfiles)..."
+        sudo systemd-tmpfiles --clean || true
+    elif [ "$1" = "hard" ]; then
+        echo "BRIŠEM VSE v /tmp (rm -rf)!"
+        sudo rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
+    else
+        echo "Uporaba: fixtmp [soft|hard]"
+    fi
+}
+alias nethogs='sudo nethogs'
+alias disable-sleep="gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing' && gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing' && gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 0 && gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout 0 && echo '🟢 Sleep disabled for AC and battery.'"
+alias enable-sleep="gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'suspend' && gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'suspend' && gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 1200 && gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout 600 && echo '🔵 Sleep enabled (20 min AC / 10 min battery).'"
+alias status-sleep="echo 'AC type:' $(gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type) ', timeout:' $(gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout)s '; Battery type:' $(gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type) ', timeout:' $(gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout)s"
+#
 alias apt='sudo apt'
 alias apti='sudo apt install -y'
 alias apts='sudo apt search'
 alias aptr='sudo apt remove -y'
 alias cleanup='sudo apt clean && sudo apt autoremove -y && sudo apt autoclean'
 alias upg='sudo apt update && sudo apt full-upgrade -y && flatpak update -y'
-neofetch
+if [ -z "$CONTAINER_ID" ]; then
+	fastfetch
+fi
