@@ -6,10 +6,76 @@ export JAVA_HOME=/usr/lib64/openjdk-17
 export PATH=/opt/lampp/bin:$JAVA_HOME/bin:$PATH
 #
 test -s ~/.alias && . ~/.alias || true
-#
-alias backup='sudo rsync -avz --delete /home/barko/ /run/media/barko/L_BACKUPS/barko/'
-alias restore='sudo rsync -avz --delete /run/media/barko/L_BACKUPS/barko/ /home/barko/'
-#
+# === BACKUP & RESTORE ===
+backup() {
+  local SRC="/home/barko/"
+  local DEST="/run/media/barko/L_BACKUPS/barko/"
+
+  local -a EXCLUDES=(
+    ".cache/"
+    ".thumbnails/"
+    ".local/share/Trash/"
+    "tmp/"
+    "lost+found/"
+    ".gvfs/"
+    "**/node_modules/"
+    "**/.npm/"
+    "**/.cache/"
+  )
+
+  local -a RSYNC_EXCLUDE_ARGS=()
+  for p in "${EXCLUDES[@]}"; do
+    RSYNC_EXCLUDE_ARGS+=(--exclude="$p")
+  done
+
+  read -rp "Backup ${SRC} → ${DEST}? [D/N] " ans
+  ans=${ans,,}   # pretvori v male črke
+  case "$ans" in
+    d|da)
+      echo "Začenjam backup... "
+      sudo rsync -a -z --delete --info=progress2 "${RSYNC_EXCLUDE_ARGS[@]}" "$SRC" "$DEST"
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        echo "Backup končan uspešno."
+      else
+        echo "Backup končal z napako (kod: $rc)."
+      fi
+      ;;
+    *)
+      echo "Backup preklican."
+      ;;
+  esac
+}
+
+restore() {
+  local SRC="/run/media/barko/L_BACKUPS/barko/"
+  local DEST="/home/barko/"
+  local EXCLUDES=( "Games/" "Prejemi/" )
+
+  read -rp "Res želite obnoviti ${SRC} → ${DEST}? [D/N] " ans
+  ans=${ans,,}
+  case "$ans" in
+    d|da)
+      echo "Začenjam restore... (izključene: ${EXCLUDES[*]})"
+      local rsync_exclude_args=()
+      for e in "${EXCLUDES[@]}"; do
+        rsync_exclude_args+=( --exclude="$e" )
+      done
+
+      sudo rsync -a -z --delete --info=progress2 "${rsync_exclude_args[@]}" "$SRC" "$DEST"
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        echo "Restore končan uspešno."
+      else
+        echo "Restore končal z napako (kod: $rc)."
+      fi
+      ;;
+    *)
+      echo "Restore preklican."
+      ;;
+  esac
+}
+# === BACKUP & RESTORE ===
 gpt() {
   local prompt="$*"
   local response=$(curl -s https://api.openai.com/v1/chat/completions \
@@ -93,6 +159,7 @@ alias fixaddtog2="if grep -q vboxusers /etc/group; then sudo usermod -a -G vboxu
 alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemode $USER; else echo 'Skupina gamemode ne obstaja'; fi"
 alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
+alias fixwinesound='mkdir -p /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | tee /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
 alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
 alias fixmaxmapcount='sudo mkdir -p /etc/sysctl.d; echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
@@ -519,8 +586,9 @@ function fixtmp {
         echo "Uporaba: fixtmp [soft|hard]"
     fi
 }
-alias myinstall_rm='sudo eopkg rm -y firefox thunderbird celluloid snapshot solus-sc solus-sc-icons'
-alias myinstall_dev='sudo eopkg it -y -c system.devel git linux-current-headers'
+alias fixvivaldi='xdg-mime default vivaldi-stable.desktop x-scheme-handler/vivaldi'
+alias myinstall_rm='sudo eopkg rm -y celluloid snapshot solus-sc solus-sc-icons'
+alias myinstall_dev='sudo eopkg it -y -c system.devel gdb git linux-current-headers meson ninja gcc pkgconf libadwaita-devel libgtk-4-devel libgtksourceview5-devel curl-devel libjson-glib-devel libsodium-devel graphene-devel libgtk-3 libayatana-appindicator sqlite3 gstreamer-1.0-plugins-base gstreamer-1.0-plugins-good gstreamer-1.0-plugins-bad glib2-devel gobject-introspection-devel gettext-devel'
 alias myinstall='sudo eopkg it -y brave fonts-installer parallel nethogs gnome-software diodon python3-tkinter pip waydroid gufw upx xdotool iw enca btop firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
 #
 alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixmailspring; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4;wifi-power-disable"
@@ -528,6 +596,6 @@ alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
 alias upg='sudo eopkg upgrade -y; flatpak update -y'
-if [ -z "$CONTAINER_ID" ]; then
-	neofetch
+if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
+    neofetch
 fi
