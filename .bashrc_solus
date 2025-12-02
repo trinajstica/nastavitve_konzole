@@ -1,26 +1,18 @@
-# za wine/lutris/steam igre
-export PULSE_LATENCY_MSEC=400
-#
 source /usr/share/defaults/etc/profile
+# barko
+export PULSE_LATENCY_MSEC=400
 export JAVA_HOME=/usr/lib64/openjdk-17
 export PATH=/opt/lampp/bin:$JAVA_HOME/bin:$PATH
 #
 test -s ~/.alias && . ~/.alias || true
 # === BACKUP & RESTORE ===
+# Backup function — updated to avoid repeated copies on non-Unix filesystems
 backup() {
-  local SRC="/home/barko/"
+  local SRC="${HOME}/"
   local DEST="/run/media/barko/L_BACKUPS/barko/"
 
   local -a EXCLUDES=(
-    ".cache/"
-    ".thumbnails/"
-    ".local/share/Trash/"
-    "tmp/"
-    "lost+found/"
-    ".gvfs/"
-    "**/node_modules/"
-    "**/.npm/"
-    "**/.cache/"
+    # add relative paths from $SRC to exclude, e.g. ".cache" "Downloads/largefile"
   )
 
   local -a RSYNC_EXCLUDE_ARGS=()
@@ -28,12 +20,28 @@ backup() {
     RSYNC_EXCLUDE_ARGS+=(--exclude="$p")
   done
 
+  # detect destination filesystem (best-effort)
+  local fstype=""
+  if command -v findmnt >/dev/null 2>&1; then
+    fstype=$(findmnt -n -o FSTYPE --target "$DEST" 2>/dev/null || true)
+  elif command -v df >/dev/null 2>&1; then
+    fstype=$(df -T "$DEST" 2>/dev/null | awk 'NR==2{print $2}' || true)
+  fi
+
+  local -a RSYNC_FS_OPTS=()
+  case "$fstype" in
+    vfat|fat|msdos|exfat|ntfs)
+      RSYNC_FS_OPTS+=(--no-perms --no-owner --no-group --modify-window=1)
+      ;;
+  esac
+
   read -rp "Backup ${SRC} → ${DEST}? [D/N] " ans
-  ans=${ans,,}   # pretvori v male črke
+  ans=${ans,,}
   case "$ans" in
     d|da)
       echo "Začenjam backup... "
-      sudo rsync -a -z --delete --info=progress2 "${RSYNC_EXCLUDE_ARGS[@]}" "$SRC" "$DEST"
+      sudo rsync -a -z --delete --delete-excluded --info=progress2 \
+        "${RSYNC_EXCLUDE_ARGS[@]}" "${RSYNC_FS_OPTS[@]}" "$SRC" "$DEST"
       rc=$?
       if [ $rc -eq 0 ]; then
         echo "Backup končan uspešno."
@@ -82,7 +90,7 @@ gpt() {
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -d "{
-      \"model\": \"gpt-4o-mini\",
+      \"model\": \"gpt-5-mini\",
       \"messages\": [
         {
           \"role\": \"system\",
@@ -160,8 +168,9 @@ alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemo
 alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
 alias fixwindowbuttons='gsettings set org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"'
 alias fixwinesound='mkdir -p /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | tee /home/$USER/.local/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
+alias fixwinesound_sys='sudo mkdir -p /usr/share/pipewire/pipewire-pulse.conf.d; echo "pulse.rules = [{matches = [{application.process.binary = \"wine64-preloader\" }], actions = {update-props = {pulse.min.quantum = 1024/48000}}}] " | sudo tee /usr/share/pipewire/pipewire-pulse.conf.d/wine_gaming.conf > /dev/null'
 alias fixlocalhost="sudo hostnamectl set-hostname namiznik"
-alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 8192)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
+alias fixzram='echo -e "[zram0]\nzram-size = min(ram, 4096)\ncompression-algorithm = zstd" | sudo tee /usr/lib/systemd/zram-generator.conf'
 alias fixmaxmapcount='sudo mkdir -p /etc/sysctl.d; echo -e "vm.max_map_count = 2000000" | sudo tee /etc/sysctl.d/10-custom.conf'
 alias fixkvm="sudo systemctl enable --now libvirtd"
 alias fixnmwos="sudo systemctl disable NetworkManager-wait-online.service"
@@ -183,6 +192,7 @@ alias db='distrobox'
 # debian - ker se kar naprej motim
 alias ubuntu='distrobox enter ubuntu'
 alias debian='distrobox enter debian'
+alias fedora='distrobox enter fedora'
 alias xampp="sudo /opt/lampp/xampp"
 alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
 alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
@@ -191,6 +201,7 @@ alias fixjava='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java 
 alias fixspicecap='f=$(find /usr -name spice-client-glib-usb-acl-helper 2>/dev/null | head -n1) && (getcap "$f" | grep -q cap && sudo setcap -r "$f" && echo "✔ Capabilities removed from $f" || echo "ℹ️  No capabilities to remove in $f")'
 alias fixmailspring='xdg-mime default mailspring.desktop x-scheme-handler/mailto'
 alias fixnetstat='sudo ln -s /usr/sbin/ss /usr/bin/netstat'
+alias fixeopkg='sudo eopkg rmo; sudo eopkg clean; sudo eopkg delete-cache; sudo eopkg -y rebuild-db; sudo eopkg up'
 #
 exportpod() {
   if [ -z "$1" ]; then
@@ -586,12 +597,60 @@ function fixtmp {
         echo "Uporaba: fixtmp [soft|hard]"
     fi
 }
+# funkcija time_hms: izvede ukaz in izpiše pretečeni čas HH:MM:SS.mmm
+time_hms() {
+  local start end elapsed_ns elapsed_ms secs ms hh mm ss rc
+
+  # Poskusimo z date +%s%N (Linux, GNU date)
+  if date +%s%N >/dev/null 2>&1; then
+    start=$(date +%s%N)
+    "$@"
+    rc=$?
+    end=$(date +%s%N)
+    elapsed_ns=$((end - start))
+    secs=$((elapsed_ns / 1000000000))
+    ms=$(((elapsed_ns / 1000000) % 1000))
+  else
+    # Fallback: meritev v milisekundah z python3 (macOS ali če ni GNU date)
+    start=$(python3 - <<'PY'
+import time
+print(int(time.time()*1000))
+PY
+)
+    "$@"
+    rc=$?
+    end=$(python3 - <<'PY'
+import time
+print(int(time.time()*1000))
+PY
+)
+    elapsed_ms=$((end - start))
+    secs=$((elapsed_ms / 1000))
+    ms=$((elapsed_ms % 1000))
+  fi
+
+  hh=$((secs/3600))
+  mm=$(( (secs%3600) / 60 ))
+  ss=$((secs%60))
+
+  printf "Elapsed: %02d:%02d:%02d.%03d\n" "$hh" "$mm" "$ss" "$ms"
+  return $rc
+}
+# Kratek alias (po želji spremeni 't' v kaj drugega)
+alias t=time_hms
 alias fixvivaldi='xdg-mime default vivaldi-stable.desktop x-scheme-handler/vivaldi'
-alias myinstall_rm='sudo eopkg rm -y celluloid snapshot solus-sc solus-sc-icons'
-alias myinstall_dev='sudo eopkg it -y -c system.devel gdb git linux-current-headers meson ninja gcc pkgconf libadwaita-devel libgtk-4-devel libgtksourceview5-devel curl-devel libjson-glib-devel libsodium-devel graphene-devel libgtk-3 libayatana-appindicator sqlite3 gstreamer-1.0-plugins-base gstreamer-1.0-plugins-good gstreamer-1.0-plugins-bad glib2-devel gobject-introspection-devel gettext-devel'
-alias myinstall='sudo eopkg it -y brave fonts-installer parallel nethogs gnome-software diodon python3-tkinter pip waydroid gufw upx xdotool iw enca btop firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
+alias fixcubic='sudo mkdir -p /etc/sysctl.d && echo "net.ipv4.tcp_congestion_control = cubic" | sudo tee /etc/sysctl.d/99-cubic.conf && sudo sysctl --system'
+alias rext='gsettings set org.gnome.shell disable-user-extensions true && gsettings set org.gnome.shell disable-user-extensions false'
+alias fixspamremote='gsettings set org.gnome.mutter.wayland xwayland-disable-extension '\''["Xtest"]'\'''
+alias free='free -g'
+alias fixlampp='sudo cp /opt/lampp/etc/httpd.conf /opt/lampp/etc/httpd.conf.bak-$(date +%s) && sudo cp /opt/lampp/etc/proftpd.conf /opt/lampp/etc/proftpd.conf.bak-$(date +%s) && sudo perl -0777 -pe "s/^User daemon$/User barko/mg; s/^Group daemon$/Group barko/mg; s#DocumentRoot \"/opt/lampp/htdocs\"#DocumentRoot \"/home/barko/Namizje/www\"#g; s#<Directory \"/opt/lampp/htdocs\">#<Directory \"/home/barko/Namizje/www\">#g" -i /opt/lampp/etc/httpd.conf && sudo perl -0777 -pe "s/^User daemon$/User barko/mg" -i /opt/lampp/etc/proftpd.conf && echo "fixlampp: izvedeno"'
+alias natisni='f() { if [ $# -eq 0 ]; then echo "Uporaba: natisni <datoteka>"; elif [ ! -f "$1" ]; then echo "Napaka: datoteka ne obstaja!"; else lpr "$@"; fi; }; f'
 #
-alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixmailspring; fixspicecap; fixjava; fixdbox; fixpodman1; fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4;wifi-power-disable"
+alias myinstall_rm='sudo eopkg rm -y celluloid snapshot '
+alias myinstall_dev='sudo eopkg it -y -c system.devel ccache gdb git linux-current-headers meson ninja gcc pkgconf libadwaita-devel libgtk-4-devel libgtksourceview5-devel curl-devel libjson-glib-devel libsodium-devel graphene-devel libgtk-3 libayatana-appindicator sqlite3 gstreamer-1.0-plugins-base gstreamer-1.0-plugins-good gstreamer-1.0-plugins-bad glib2-devel gobject-introspection-devel gettext-devel libgtkmm-4-devel'
+alias myinstall='sudo eopkg it -y diodon python3-tkinter pip waydroid gufw upx xdotool iw enca btop firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox gnome-boxes lutris steam jq mc neofetch sshpass openjdk-17'
+#
+alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixspicecap; fixjava;  fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; wifi-power-disable;  fixcubic; fixspamremote"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
