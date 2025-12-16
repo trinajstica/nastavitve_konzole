@@ -35,6 +35,48 @@ backup() {
       ;;
   esac
 
+  # Safety: ensure destination exists and looks like a mounted backup
+  if [ ! -d "$DEST" ]; then
+    echo "Napaka: ciljni imenik '$DEST' ne obstaja. Preverite, ali je pogon montiran." >&2
+    return 1
+  fi
+
+  # Check whether $DEST is actually on a mounted filesystem. Prefer
+  # 'findmnt --target' (returns success if the path lies on any mounted FS).
+  if command -v findmnt >/dev/null 2>&1; then
+    if ! findmnt --target "$DEST" >/dev/null 2>&1; then
+      read -rp "Ciljni disk '$DEST' ni montiran ali ni dosegljiv. Nadaljujem in kopiram v lokalno mapo? [N/d] " confirm
+      confirm=${confirm,,}
+      case "$confirm" in
+        d|da) echo "Nadaljujem (prepričaj se, da je to namenoma).";;
+        *) echo "Backup preklican."; return 1;;
+      esac
+    fi
+  elif command -v mountpoint >/dev/null 2>&1; then
+    # Fallback: 'mountpoint' only reports true if the directory itself is a mount point.
+    if ! mountpoint -q "$DEST"; then
+      # If the directory appears empty, it's likely not mounted — warn and confirm.
+      if [ -z "$(ls -A "$DEST" 2>/dev/null)" ]; then
+        read -rp "Ciljni imenik '$DEST' je prazen ali ni montiran. Nadaljujem? [N/d] " confirm
+        confirm=${confirm,,}
+        case "$confirm" in
+          d|da) echo "Nadaljujem (prepričaj se, da je to namenoma).";;
+          *) echo "Backup preklican."; return 1;;
+        esac
+      fi
+    fi
+  else
+    # No findmnt/mountpoint available — best-effort: warn if empty.
+    if [ -z "$(ls -A "$DEST" 2>/dev/null)" ]; then
+      read -rp "Ciljni imenik '$DEST' je prazen ali ni montiran. Nadaljujem? [N/d] " confirm
+      confirm=${confirm,,}
+      case "$confirm" in
+        d|da) echo "Nadaljujem (prepričaj se, da je to namenoma).";;
+        *) echo "Backup preklican."; return 1;;
+      esac
+    fi
+  fi
+
   read -rp "Backup ${SRC} → ${DEST}? [D/N] " ans
   ans=${ans,,}
   case "$ans" in
@@ -60,27 +102,77 @@ restore() {
   local DEST="/home/barko/"
   local EXCLUDES=( "Games/" "Prejemi/" )
 
+  # Safety checks: ensure source exists, is likely mounted and not empty
+  if [ ! -d "$SRC" ]; then
+    echo "Napaka: izvorni backup '$SRC' ne obstaja. Preverite, ali je pogon montiran." >&2
+    return 1
+  fi
+
+  # Check whether $SRC is on a mounted filesystem. Prefer 'findmnt --target'.
+  if command -v findmnt >/dev/null 2>&1; then
+    if ! findmnt --target "$SRC" >/dev/null 2>&1; then
+      echo "VARNOST: izvorni backup ni montiran ali ni dosegljiv. Restore z --delete lahko izbriše datoteke v $DEST." >&2
+      read -rp "Res želite nadaljevati? [D/N] " ans
+      ans=${ans,,}
+      case "$ans" in
+        d|da) echo "Nadaljujem (pazi!).";;
+        *) echo "Restore preklican."; return 1;;
+      esac
+    fi
+  elif command -v mountpoint >/dev/null 2>&1; then
+    if ! mountpoint -q "$SRC"; then
+      echo "VARNOST: izvorni backup ni montiran. Restore z --delete lahko izbriše datoteke v $DEST." >&2
+      read -rp "Res želite nadaljevati? [D/N] " ans
+      ans=${ans,,}
+      case "$ans" in
+        d|da) echo "Nadaljujem (pazi!).";;
+        *) echo "Restore preklican."; return 1;;
+      esac
+    fi
+  else
+    # no findmnt/mountpoint: ensure directory not empty
+    if [ -z "$(ls -A "$SRC" 2>/dev/null)" ]; then
+      echo "VARNOST: izvorni backup je prazen ali nedosegljiv. Restore preklican." >&2
+      return 1
+    fi
+  fi
+
+  if [ -z "$(ls -A "$SRC" 2>/dev/null)" ]; then
+    echo "Napaka: izvorna mapa '$SRC' je prazna. Možno je, da pogon ni montiran. Restore preklican." >&2
+    return 1
+  fi
+
   read -rp "Res želite obnoviti ${SRC} → ${DEST}? [D/N] " ans
   ans=${ans,,}
   case "$ans" in
     d|da)
-      echo "Začenjam restore... (izključene: ${EXCLUDES[*]})"
       local rsync_exclude_args=()
       for e in "${EXCLUDES[@]}"; do
         rsync_exclude_args+=( --exclude="$e" )
       done
 
-      sudo rsync -a -z --delete --info=progress2 "${rsync_exclude_args[@]}" "$SRC" "$DEST"
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        echo "Restore končan uspešno."
-      else
-        echo "Restore končal z napako (kod: $rc)."
-      fi
+      echo "Predogled (rsync --dry-run) — prikazal bo, kaj bi bilo spremenjeno/izbrisano:" 
+      sudo rsync -a -z --delete --info=progress2 --dry-run "${rsync_exclude_args[@]}" "$SRC" "$DEST"
+
+      read -rp "Želite izvesti dejanski restore po ogledu? [D/N] " ans2
+      ans2=${ans2,,}
+      case "$ans2" in
+        d|da)
+          echo "Začenjam restore... (izključene: ${EXCLUDES[*]})"
+          sudo rsync -a -z --delete --info=progress2 "${rsync_exclude_args[@]}" "$SRC" "$DEST"
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            echo "Restore končan uspešno."
+          else
+            echo "Restore končal z napako (kod: $rc)."
+          fi
+          ;;
+        *)
+          echo "Restore preklican po predogledu."; return 0;;
+      esac
       ;;
     *)
-      echo "Restore preklican."
-      ;;
+      echo "Restore preklican.";;
   esac
 }
 # === BACKUP & RESTORE ===
@@ -657,3 +749,8 @@ alias upg='sudo eopkg upgrade -y; flatpak update -y'
 if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
     neofetch
 fi
+
+c() {
+  copilot -i "$*"
+}
+
