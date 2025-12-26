@@ -335,32 +335,73 @@ function fixbroken {
       done
 }
 #
+# Improved compilepy: checks for PyInstaller, uses temp directories and cleans up
 compilepy() {
     local file="$1"
-    local filename="$(basename "$file" .py)"
-
-    echo "Kompiliram $file..."
-    pyinstaller --onefile --windowed "$file" || {
-        echo "Napaka med izvajanjem PyInstallerja."
+    if [ -z "$file" ]; then
+        echo "Usage: compilepy <script.py> [pyinstaller-opts]" >&2
         return 1
-    }
-
-    local executable="dist/$filename"
-    if [ -f "$executable" ]; then
-        echo "Premikam izvršljivo datoteko v trenutno mapo..."
-        mv "$executable" . || {
-            echo "Premik ni uspel."
-            return 1
-        }
-    else
-        echo "Napaka: izvršljiva datoteka $executable ni bila ustvarjena."
+    fi
+    if [ ! -f "$file" ]; then
+        echo "Error: file not found: $file" >&2
         return 1
     fi
 
-    echo "Odstranjujem build, dist in .spec datoteko..."
-    rm -rf build dist "$filename.spec"
-    echo "Končano."
+    local filename
+    filename="$(basename "$file" .py)"
+
+    # find pyinstaller (either executable or module)
+    local -a pyinstaller_cmd
+    if command -v pyinstaller >/dev/null 2>&1; then
+        pyinstaller_cmd=(pyinstaller)
+    elif python3 -c "import PyInstaller" >/dev/null 2>&1; then
+        pyinstaller_cmd=(python3 -m PyInstaller)
+    elif python -c "import PyInstaller" >/dev/null 2>&1; then
+        pyinstaller_cmd=(python -m PyInstaller)
+    else
+        echo "Error: PyInstaller not found. Install with: python3 -m pip install --user pyinstaller" >&2
+        return 1
+    fi
+
+    local tmpdir
+    tmpdir="$(mktemp -d)" || { echo "Failed to create temp dir" >&2; return 1; }
+    trap 'rm -rf -- "$tmpdir"' EXIT
+
+    local distdir="$tmpdir/dist"
+    local workdir="$tmpdir/build"
+    local specdir="$tmpdir"
+    mkdir -p "$distdir" "$workdir" "$specdir" || { echo "Failed to create build dirs" >&2; return 1; }
+
+    echo "Compiling $file..."
+    shift
+    "${pyinstaller_cmd[@]}" --onefile --windowed --distpath "$distdir" --workpath "$workdir" --specpath "$specdir" "$@" "$file"
+    local rc=$?
+    if [ $rc -ne 0 ]; then
+        echo "PyInstaller failed (exit $rc)" >&2
+        return $rc
+    fi
+
+    local exe="$distdir/$filename"
+    if [ ! -f "$exe" ] && [ -f "$exe.exe" ]; then
+        exe="$exe.exe"
+    fi
+    if [ ! -f "$exe" ]; then
+        echo "Error: executable not created in $distdir" >&2
+        return 1
+    fi
+
+    local target="./$filename"
+    if [ -f "$target" ]; then
+        local bak="${target}.$(date +%s).bak"
+        echo "Note: $target exists, backing up to $bak"
+        mv -f "$target" "$bak" || { echo "Failed to backup existing executable" >&2; return 1; }
+    fi
+
+    mv -f "$exe" "$target" || { echo "Failed to move executable" >&2; return 1; }
+    echo "Executable created: $target"
+    return 0
 }
+#
 get_wmclass_interactive() {
   # izberi okno
   local wid=$(xdotool selectwindow)
@@ -725,6 +766,168 @@ PY
   printf "Elapsed: %02d:%02d:%02d.%03d\n" "$hh" "$mm" "$ss" "$ms"
   return $rc
 }
+###
+compilepy() {
+    local file="$1"
+    if [ -z "$file" ]; then
+        echo "Uporaba: compilepy <skript.py> [pyinstaller-argumenti]" >&2
+        return 1
+    fi
+    if [ ! -f "$file" ]; then
+        echo "Napaka: datoteka ni najdena: $file" >&2
+        return 1
+    fi
+
+    local filename
+    filename="$(basename "$file" .py)"
+
+    # poišči pyinstaller (izvršljiva datoteka ali modul)
+    local -a pyinstaller_cmd
+    if command -v pyinstaller >/dev/null 2>&1; then
+        pyinstaller_cmd=(pyinstaller)
+    elif python3 -c 'import PyInstaller' >/dev/null 2>&1; then
+        pyinstaller_cmd=(python3 -m PyInstaller)
+    elif python -c 'import PyInstaller' >/dev/null 2>&1; then
+        pyinstaller_cmd=(python -m PyInstaller)
+    else
+        echo "Napaka: PyInstaller ni najden. Namestite ga: python3 -m pip install --user pyinstaller" >&2
+        return 1
+    fi
+
+    # zagotovimo pip (preveri in po potrebi poskusi namestiti)
+    local -a pip_cmd
+    ensure_pip() {
+        if python3 -m pip --version >/dev/null 2>&1; then
+            pip_cmd=(python3 -m pip); return 0
+        elif command -v pip3 >/dev/null 2>&1; then
+            pip_cmd=(pip3); return 0
+        elif command -v pip >/dev/null 2>&1; then
+            pip_cmd=(pip); return 0
+        fi
+        # poskusimo z ensurepip
+        if python3 -m ensurepip --upgrade >/dev/null 2>&1; then
+            pip_cmd=(python3 -m pip); return 0
+        fi
+        # poskusimo namestiti preko apt (če je na voljo)
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "pip ni najden; poskušam namestiti python3-pip preko apt (zahteva sudo)..." >&2
+            if sudo apt-get update && sudo apt-get install -y python3-pip; then
+                if command -v pip3 >/dev/null 2>&1; then pip_cmd=(pip3); return 0; fi
+            fi
+        fi
+        echo "Ne najdem pip; ročno namestite pip ali uporabite virtualenv / pipx." >&2
+        return 1
+    }
+
+    # preden kompiliramo, poskušamo namestiti manjkajoče odvisnosti, ki jih uvozi skripta
+    local dir
+    dir="$(dirname "$(realpath "$file")")"
+    local reqfile="$dir/requirements.txt"
+    if [ -f "$reqfile" ]; then
+        ensure_pip || return 1
+        echo "Namestim odvisnosti iz $reqfile..."
+        "${pip_cmd[@]}" install --user -r "$reqfile" || echo "Namestitev iz $reqfile ni uspela" >&2
+    else
+        local modules
+        modules=$(python3 - <<'PY' "$file"
+import ast,sys
+p=sys.argv[1]
+try:
+    s=open(p,'r',encoding='utf-8').read()
+except Exception:
+    sys.exit(0)
+mods=set()
+for n in ast.walk(ast.parse(s)):
+    if isinstance(n, ast.Import):
+        for a in n.names:
+            mods.add(a.name.split('.')[0])
+    elif isinstance(n, ast.ImportFrom):
+        if n.module and not n.module.startswith('.'):
+            mods.add(n.module.split('.')[0])
+for m in sorted(mods):
+    if m and m!='__future__':
+        print(m)
+PY
+)
+        local to_install=()
+        local mod
+        for mod in $modules; do
+            # preskoči lokalne module (datoteke v isti mapi)
+            if [ -f "$dir/$mod.py" ] || [ -d "$dir/$mod" ]; then
+                continue
+            fi
+            # če se modul že uvozi, preskočimo
+            if python3 -c "import $mod" >/dev/null 2>&1; then
+                continue
+            fi
+            to_install+=("$mod")
+        done
+        if [ "${#to_install[@]}" -gt 0 ]; then
+            ensure_pip || return 1
+            # mapa za pogoste neusklajenosti imen paketov
+            declare -A pkgmap=( [PIL]=Pillow [bs4]=beautifulsoup4 [skimage]=scikit-image [sklearn]=scikit-learn [cv2]=opencv-python [yaml]=PyYAML [Crypto]=pycryptodome )
+            local pkgs=()
+            for mod in "${to_install[@]}"; do
+                pkg="${pkgmap[$mod]:-$mod}"
+                pkgs+=("$pkg")
+            done
+            echo "Namestim manjkajoče pakete: ${pkgs[*]}"
+            "${pip_cmd[@]}" install --user --upgrade "${pkgs[@]}" || echo "Namestitev nekaterih paketov ni uspela." >&2
+            # preverimo, kateri še manjkajo
+            local still_missing=()
+            for mod in "${to_install[@]}"; do
+                if ! python3 -c "import $mod" >/dev/null 2>&1; then
+                    still_missing+=("$mod")
+                fi
+            done
+            if [ "${#still_missing[@]}" -gt 0 ]; then
+                echo "Upozorilo: še vedno manjkajo naslednji moduli: ${still_missing[*]}" >&2
+                echo "Ročno jih namestite ali preverite imena paketov (npr. Pillow namesto PIL)." >&2
+            fi
+        else
+            echo "Ni manjkajočih paketov; vse uvožene knjižnice so že nameščene."
+        fi
+    fi
+
+    local tmpdir
+    tmpdir="$(mktemp -d)" || { echo "Neuspešno ustvarjanje začasne mape" >&2; return 1; }
+    trap 'rm -rf -- "$tmpdir"' EXIT
+
+    local distdir="$tmpdir/dist"
+    local workdir="$tmpdir/build"
+    local specdir="$tmpdir"
+    mkdir -p "$distdir" "$workdir" "$specdir" || { echo "Neuspešno ustvarjanje gradbenih map" >&2; return 1; }
+
+    echo "Kompiliranje $file..."
+    shift
+    "${pyinstaller_cmd[@]}" --onefile --windowed --distpath "$distdir" --workpath "$workdir" --specpath "$specdir" "$@" "$file"
+    local rc=$?
+    if [ $rc -ne 0 ]; then
+        echo "PyInstaller ni uspel (izhod $rc)" >&2
+        return $rc
+    fi
+
+    local exe="$distdir/$filename"
+    if [ ! -f "$exe" ] && [ -f "$exe.exe" ]; then
+        exe="$exe.exe"
+    fi
+    if [ ! -f "$exe" ]; then
+        echo "Napaka: izvršljiva datoteka ni bila ustvarjena v $distdir" >&2
+        return 1
+    fi
+
+    local target="./$filename"
+    if [ -f "$target" ]; then
+        local bak="${target}.$(date +%s).bak"
+        echo "Pozor: $target obstaja, premikam v $bak"
+        mv -f "$target" "$bak" || { echo "Neuspešno premikanje obstoječega izvršljivega" >&2; return 1; }
+    fi
+
+    mv -f "$exe" "$target" || { echo "Neuspešno premikanje izvršljive datoteke" >&2; return 1; }
+    echo "Izvršljiva datoteka ustvarjena: $target"
+    return 0
+}
+###
 # Kratek alias (po želji spremeni 't' v kaj drugega)
 alias t=time_hms
 alias fixvivaldi='xdg-mime default vivaldi-stable.desktop x-scheme-handler/vivaldi'
@@ -736,10 +939,11 @@ alias fixlampp='sudo cp /opt/lampp/etc/httpd.conf /opt/lampp/etc/httpd.conf.bak-
 alias natisni='f() { if [ $# -eq 0 ]; then echo "Uporaba: natisni <datoteka>"; elif [ ! -f "$1" ]; then echo "Napaka: datoteka ne obstaja!"; else lpr "$@"; fi; }; f'
 alias killant='killall -9 antigravity'
 alias fixgnomedonate="gsettings set org.gnome.settings-daemon.plugins.housekeeping donation-reminder-enabled 'false'"
+alias smrekca='(clear; trap "tput cnorm; clear; exit" INT TERM; tput civis; tree=( "          *" "         /***" "        /*****" "       /*******" "      /*********" "     /***********" "    /*************" "         |||" "         |||" ); colors=(31 32 33 34 35 36); while true; do clear; for line in "${tree[@]}"; do c=${colors[$RANDOM % ${#colors[@]}]}; printf "\e[%sm%s\e[0m\n" "$c" "$line"; done; echo; printf "\e[1;32m     Vesel božič!\e[0m\n"; sleep 0.5; done)'
 #
 alias myinstall_rm='sudo eopkg rm -y celluloid snapshot '
 alias myinstall_dev='sudo eopkg it -y -c system.devel ccache gdb git linux-current-headers meson ninja gcc pkgconf libadwaita-devel libgtk-4-devel libgtksourceview5-devel curl-devel libjson-glib-devel libsodium-devel graphene-devel libgtk-3 libayatana-appindicator sqlite3 gstreamer-1.0-plugins-base gstreamer-1.0-plugins-good gstreamer-1.0-plugins-bad glib2-devel gobject-introspection-devel gettext-devel libgtkmm-4-devel'
-alias myinstall='sudo eopkg it -y gnome-boxes diodon python3-tkinter pip waydroid gufw upx xdotool iw enca firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox lutris steam jq mc neofetch sshpass openjdk-17'
+alias myinstall='sudo eopkg it -y starship gnome-boxes diodon python3-tkinter pip waydroid gufw upx xdotool iw enca firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox lutris steam jq mc neofetch sshpass openjdk-17'
 #
 alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixspicecap; fixjava;  fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; wifi-power-disable;  fixcubic; fixspamremote"
 alias nethogs='sudo nethogs'
@@ -749,8 +953,7 @@ alias upg='sudo eopkg upgrade -y; flatpak update -y'
 if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
     neofetch
 fi
-
 c() {
   copilot -i "$*"
 }
-
+eval "$(starship init bash)"
