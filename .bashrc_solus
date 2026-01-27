@@ -1,7 +1,7 @@
 source /usr/share/defaults/etc/profile
 # barko
 export PULSE_LATENCY_MSEC=400
-export JAVA_HOME=/usr/lib64/openjdk-17
+export JAVA_HOME=/usr/lib64/openjdk-21
 export PATH=/opt/lampp/bin:$JAVA_HOME/bin:$PATH
 #
 test -s ~/.alias && . ~/.alias || true
@@ -286,7 +286,8 @@ alias xampp="sudo /opt/lampp/xampp"
 alias xs="echo 'Re/Start xampp...'; xampp restart &>/dev/null; echo 'Ok'"
 alias xst="echo 'Stop xampp...'; xampp stop &>/dev/null; echo 'Ok'"
 alias fixrtw88='sudo mkdir -p /etc/modprobe.d && echo "blacklist rtw88_8822bu" | sudo tee /etc/modprobe.d/rtw8822bu.conf > /dev/null'
-alias fixjava='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java'
+alias fixjava17='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-17/bin/java /usr/bin/java'
+alias fixjava21='sudo rm /usr/bin/java; sudo ln -s /usr/lib64/openjdk-21/bin/java /usr/bin/java'
 alias fixspicecap='f=$(find /usr -name spice-client-glib-usb-acl-helper 2>/dev/null | head -n1) && (getcap "$f" | grep -q cap && sudo setcap -r "$f" && echo "✔ Capabilities removed from $f" || echo "ℹ️  No capabilities to remove in $f")'
 alias fixmailspring='xdg-mime default mailspring.desktop x-scheme-handler/mailto'
 alias fixnetstat='sudo ln -s /usr/sbin/ss /usr/bin/netstat'
@@ -940,20 +941,29 @@ alias natisni='f() { if [ $# -eq 0 ]; then echo "Uporaba: natisni <datoteka>"; e
 alias killant='killall -9 antigravity'
 alias fixgnomedonate="gsettings set org.gnome.settings-daemon.plugins.housekeeping donation-reminder-enabled 'false'"
 alias smrekca='(clear; trap "tput cnorm; clear; exit" INT TERM; tput civis; tree=( "          *" "         /***" "        /*****" "       /*******" "      /*********" "     /***********" "    /*************" "         |||" "         |||" ); colors=(31 32 33 34 35 36); while true; do clear; for line in "${tree[@]}"; do c=${colors[$RANDOM % ${#colors[@]}]}; printf "\e[%sm%s\e[0m\n" "$c" "$line"; done; echo; printf "\e[1;32m     Vesel božič!\e[0m\n"; sleep 0.5; done)'
+alias fixff='sudo npm install -g ezff'
+alias fixflatpak='flatpak repair; sudo systemctl restart flatpak-system-helper.service; flatpak update'
+alias fixam='gsettings set org.gnome.mutter auto-maximize false'
 #
-alias myinstall_rm='sudo eopkg rm -y celluloid snapshot '
-alias myinstall_dev='sudo eopkg it -y -c system.devel ccache gdb git linux-current-headers meson ninja gcc pkgconf libadwaita-devel libgtk-4-devel libgtksourceview5-devel curl-devel libjson-glib-devel libsodium-devel graphene-devel libgtk-3 libayatana-appindicator sqlite3 gstreamer-1.0-plugins-base gstreamer-1.0-plugins-good gstreamer-1.0-plugins-bad glib2-devel gobject-introspection-devel gettext-devel libgtkmm-4-devel'
-alias myinstall='sudo eopkg it -y starship gnome-boxes diodon python3-tkinter pip waydroid gufw upx xdotool iw enca firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox lutris steam jq mc neofetch sshpass openjdk-17'
+alias myinstall_rm='sudo eopkg rm -y celluloid snapshot'
+alias myinstall_dev='sudo eopkg it -y -c system.devel ccache gdb git linux-current-headers meson ninja gcc pkgconf make upx binutils libadwaita-devel libgtk-4-devel libgtk-3-devel libayatana-appindicator-devel libgtksourceview5-devel libjson-glib-devel sqlite3-devel gstreamer-1.0-devel gstreamer-1.0-plugins-base-devel libjpeg-turbo-devel libpng-devel glib2-devel libarchive-devel curl-devel libsodium-devel graphene-devel gobject-introspection-devel gettext-devel libgtkmm-4-devel'
+alias myinstall='sudo eopkg it -y inkscape pear-desktop fonts-installer starship gnome-boxes diodon python3-tkinter pip waydroid gufw upx xdotool iw enca firejail binutils rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox lutris steam jq mc neofetch sshpass openjdk-21 libgtk-4 libgtk-3 libayatana-appindicator sqlite3 gstreamer-1.0-plugins-base gstreamer-1.0-plugins-good gstreamer-1.0-plugins-bad libjson-glib libjpeg-turbo libpng adwaita-icon-theme libarchive ffmpeg libsodium uchardet curl git unzip tar xz'
 #
-alias fixall="myinstall_rm; myinstall; myinstall_dev; fixflatpak; fixspicecap; fixjava;  fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; wifi-power-disable;  fixcubic; fixspamremote"
+alias fixall="myinstall_rm; myinstall; myinstall_dev; fixspicecap; fixjava21;  fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; wifi-power-disable;  fixcubic; fixspamremote; fonts-installer; fixff; fixam"
 alias nethogs='sudo nethogs'
 alias e='sudo eopkg'
 alias cleanup='sudo journalctl --vacuum-time=2d; sudo eopkg dc -y; sudo eopkg rmo -y; flatpak remove --unused -y'
-alias upg='sudo eopkg upgrade -y; flatpak update -y'
 if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
     neofetch
 fi
-c() {
-  copilot -i "$*"
-}
 eval "$(starship init bash)"
+. "$HOME/.cargo/env"
+upg() {
+  sudo eopkg ur -y && \
+  sudo eopkg up -y && \
+  sudo eopkg cp -y && \
+  sudo eopkg rmo -y && \
+  sudo eopkg dc -y && \
+  sudo eopkg clean -y && \
+  sudo flatpak update -y
+}
