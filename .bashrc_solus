@@ -783,7 +783,6 @@ PY
 }
 
 # --- Interaktivni startup (le če ni container / ne-VSCode) ---
-# Če je bash znotraj Dolphin KPart ali podoben, izpusti neofetch
 is_in_dolphin() {
   p=$$
   while [ "$p" -ne 1 ] 2>/dev/null; do
@@ -797,10 +796,24 @@ is_in_dolphin() {
   return 1
 }
 
+is_in_zed() {
+  case "${TERM_PROGRAM:-}" in *zed*|*Zed*) return 0;; esac
+  env | grep -qi '^ZED' && return 0
+
+  pid=$$
+  while [ -n "$pid" ] && [ "$pid" -ne 1 ]; do
+    ps -o comm= -p "$pid" 2>/dev/null | grep -qi zed && return 0
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ' || true)
+  done
+
+  return 1
+}
+
+# primer uporabe
 if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
-    if ! is_in_dolphin; then
-        command -v neofetch >/dev/null 2>&1 && neofetch
-    fi
+  if ! is_in_dolphin && ! is_in_zed; then
+    command -v neofetch >/dev/null 2>&1 && neofetch
+  fi
 fi
 
 # Starship in rust env
