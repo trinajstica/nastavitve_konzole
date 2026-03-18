@@ -178,28 +178,6 @@ restore() {
   esac
 }
 
-# --- GPT wrapper (klic OpenAI) ---
-gpt() {
-  local prompt="$*"
-  local response=$(curl -s https://api.openai.com/v1/chat/completions \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $OPENAI_API_KEY" \
-    -d "{
-      \"model\": \"gpt-5-mini\",
-      \"messages\": [
-        {
-          \"role\": \"system\",
-          \"content\": \"za računanje uporabi python knjižnice, za odgovore uporabi slovenščino, za valute uporabi EUR in znak €, za odgovore porabi do največ 250 znakov, bodi zelo kratek v odgovorih\"
-        },
-        {
-          \"role\": \"user\",
-          \"content\": \"${prompt}\"
-        }
-      ]
-    }")
-  echo "$response" | jq -r '.choices[0].message.content'
-}
-
 # --- Majhne pripomočne funkcije ---
 fixgd() {
     if [ -f "$1" ]; then
@@ -813,3 +791,20 @@ fi
 # Starship in rust env
 eval "$(starship init bash)"
 . "$HOME/.cargo/env"
+
+# Copilot alias/function "c" - pass remaining words as single string to copilot CLI
+c() {
+  if command -v copilot >/dev/null 2>&1; then
+    output="$(copilot -p "$*" 2>&1)"
+    ret=$?
+    printf '%s\n' "$output" | sed '/^Total usage est:/,$d'
+    return $ret
+  elif command -v gh >/dev/null 2>&1 && gh --help | grep -q "copilot"; then
+    output="$(gh copilot -p "$*" 2>&1)"
+    ret=$?
+    printf '%s\n' "$output" | sed '/^Total usage est:/,$d'
+    return $ret
+  else
+    echo "No copilot CLI found. Install GitHub Copilot CLI or enable the GitHub CLI copilot extension."
+  fi
+}
