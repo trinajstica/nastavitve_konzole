@@ -630,7 +630,7 @@ alias fixaddtog3="if grep -q gamemode /etc/group; then sudo usermod -a -G gamemo
 alias fixaddtog4="if grep -q libvirt /etc/group; then sudo usermod -a -G libvirt,kvm,qemu $USER; else echo 'Skupina libvirt ne obstaja'; fi"
 alias fixkvm="sudo systemctl enable --now libvirtd"
 alias fixvirbox='echo "options kvm enable_virt_at_load=0" | sudo tee /usr/lib/modprobe.d/virtualbox.conf'
-alias fixdbox="sudo touch /etc/subuid /etc/subgid && sudo chmod 644 /etc/subuid /etc/subgid && sudo usermod --add-subuids 100000-165536 --add-subgids 100000-165536 $USER"
+alias fixdbox='sudo sh -c "echo \"$USER:100000:65536\" > /etc/subuid; echo \"$USER:100000:65536\" > /etc/subgid"'
 alias fixpodman1='sudo touch /etc/subuid /etc/subgid; sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER'
 alias fixpodman2='mkdir -p $HOME/.config/containers && echo -e "[engine]\nruntime = \"crun\"" > $HOME/.config/containers/containers.conf'
 
@@ -651,7 +651,6 @@ alias fixmaxmapcount='sudo mkdir -p /etc/sysctl.d; echo -e "vm.max_map_count = 2
 alias fixtp='sudo systemctl mask tpmrm0.device dev-tpmrm0.device'
 alias unfixtp='sudo systemctl unmask tpmrm0.device dev-tpmrm0.device'
 alias fixbrave='xdg-settings set default-web-browser brave.desktop'
-alias fixbt="$HOME/.local/bin/fixbt"
 
 # Paket/namestitve / namestitveni nabiranja
 alias fixff='sudo npm install -g ezff'
@@ -659,8 +658,8 @@ alias fixnetstat='sudo ln -s /usr/sbin/ss /usr/bin/netstat'
 alias fixeopkg='sudo eopkg rmo; sudo eopkg clean; sudo eopkg delete-cache; sudo eopkg -y rebuild-db; sudo eopkg up'
 alias myinstall_rm='sudo eopkg rm -y celluloid snapshot'
 alias myinstall_dev='sudo eopkg it -y -c system.devel pip mkvtoolnix python3-tkinter ccache gdb git linux-current-headers meson ninja gcc pkgconf make upx binutils libadwaita-devel libgtk-4-devel libgtk-3-devel libayatana-appindicator-devel libgtksourceview5-devel libjson-glib-devel sqlite3-devel gstreamer-devel gstreamer-plugins-base-devel libjpeg-turbo-devel libpng-devel glib2-devel libarchive-devel curl-devel libsodium-devel graphene-devel gobject-introspection-devel gettext-devel libgtkmm-4-devel libgtk-3 libgtk-4 libayatana-appindicator gstreamer-plugins-base gstreamer-plugins-good gstreamer-plugins-bad libarchive libjson-glib libjpeg-turbo adwaita-icon-theme glib2 libgtksourceview5 libsodium'
-alias myinstall='sudo eopkg it -y diodon solseek lutris heroic-games-launcher whois inkscape pear-desktop fonts-installer starship gnome-boxes waydroid gufw xdotool iw enca firejail rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox steam jq mc neofetch sshpass openjdk-21 ffmpeg uchardet git unzip tar xz'
-alias fixall="myinstall_rm; myinstall; myinstall_dev; fixspicecap; fixjava21;  fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; wifi-power-disable;  fixcubic; fixspamremote; fonts-installer; fixam; fwop; fixbt; fixnmwos; fixtp"
+alias myinstall='sudo eopkg it -y extension-manager diodon solseek lutris heroic-games-launcher whois inkscape pear-desktop fonts-installer starship gnome-boxes waydroid gufw xdotool iw enca firejail rhythmbox gnome-disk-utility plocate localsend rsync transmission yarn nodejs filezilla distrobox steam jq mc neofetch sshpass openjdk-21 ffmpeg uchardet git unzip tar xz'
+alias fixall="myinstall_rm; myinstall; myinstall_dev; fixspicecap; fixjava21;  fixmaxmapcount; fixvirbox; fixflatpakicons; fixmaxsound; fixwait; fixaddtog1; fixaddtog2; fixaddtog3; fixaddtog4; wifi-power-disable;  fixcubic; fixspamremote; fonts-installer; fixam; fwop; fixnmwos"
 
 # Distrobox / distro shortcuts
 alias db='distrobox'
@@ -815,4 +814,68 @@ c() {
   else
     echo "No copilot CLI found. Install GitHub Copilot CLI or enable the GitHub CLI copilot extension."
   fi
+}
+#
+# Funkciji za nastavljanje lokalizacije (z source /etc/locale.conf na koncu)
+fixlocale() {
+    sudo tee /etc/locale.conf >/dev/null <<EOF
+LANG=sl_SI.UTF-8
+LC_ADDRESS=sl_SI.UTF-8
+LC_IDENTIFICATION=sl_SI.UTF-8
+LC_MEASUREMENT=sl_SI.UTF-8
+LC_MONETARY=sl_SI.UTF-8
+LC_NAME=sl_SI.UTF-8
+LC_NUMERIC=sl_SI.UTF-8
+LC_PAPER=sl_SI.UTF-8
+LC_TELEPHONE=sl_SI.UTF-8
+LC_TIME=sl_SI.UTF-8
+EOF
+
+    sudo tee /etc/default/locale >/dev/null <<'EOF'
+LANG="sl_SI.UTF-8"
+LC_ADDRESS="sl_SI.UTF-8"
+LC_IDENTIFICATION="sl_SI.UTF-8"
+LC_MEASUREMENT="sl_SI.UTF-8"
+LC_MONETARY="sl_SI.UTF-8"
+LC_NAME="sl_SI.UTF-8"
+LC_NUMERIC="sl_SI.UTF-8"
+LC_PAPER="sl_SI.UTF-8"
+LC_TELEPHONE="sl_SI.UTF-8"
+LC_TIME="sl_SI.UTF-8"
+EOF
+
+    echo "Locale nastavljena na sl_SI.UTF-8 (zapisano v /etc/locale.conf in /etc/default/locale)"
+    source /etc/locale.conf 2>/dev/null || true
+}
+
+unfixlocale() {
+    sudo tee /etc/locale.conf >/dev/null <<EOF
+LANG=sl_SI.utf8
+LC_ADDRESS=sl_SI.utf8
+LC_IDENTIFICATION=sl_SI.utf8
+LC_MEASUREMENT=sl_SI.utf8
+LC_MONETARY=sl_SI.utf8
+LC_NAME=sl_SI.utf8
+LC_NUMERIC=sl_SI.utf8
+LC_PAPER=sl_SI.utf8
+LC_TELEPHONE=sl_SI.utf8
+LC_TIME=sl_SI.utf8
+EOF
+
+    sudo tee /etc/default/locale >/dev/null <<'EOF'
+LANG="sl_SI.utf8"
+LC_ADDRESS="sl_SI.utf8"
+LC_IDENTIFICATION="sl_SI.utf8"
+LC_MEASUREMENT="sl_SI.utf8"
+LC_MONETARY="sl_SI.utf8"
+LC_NAME="sl_SI.utf8"
+LC_NUMERIC="sl_SI.utf8"
+LC_PAPER="sl_SI.utf8"
+LC_TELEPHONE="sl_SI.utf8"
+LC_TIME="sl_SI.utf8"
+EOF
+
+    echo "Locale nastavljena na sl_SI.utf8 (zapisano v /etc/locale.conf in /etc/default/locale — lahko ni vedno kompatibilno)"
+    source /etc/locale.conf 2>/dev/null || true
+    locale
 }
