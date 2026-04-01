@@ -185,53 +185,6 @@ fixgd() {
     fi
 }
 
-toutf8() {
-    local file encoding
-    shopt -s nullglob
-    for file in *.srt; do
-        encoding=$(enca --mime-name "$file" 2>/dev/null)
-        if [ -z "$encoding" ]; then
-            echo "Opozorilo: ne morem zaznati kodiranja: $file" >&2
-            continue
-        fi
-        if [ "${encoding^^}" != "UTF-8" ]; then
-            if iconv -f "$encoding" -t "UTF-8" "$file" > "${file}.tmp"; then
-                mv "${file}.tmp" "$file"
-                echo "$file pretvorjen v UTF-8"
-            else
-                rm -f "${file}.tmp"
-                echo "Napaka pri pretvorbi: $file" >&2
-                continue
-            fi
-        else
-            echo "$file je že v UTF-8"
-        fi
-        sed -i 's/<i>//g; s/<\/i>//g' "$file"
-    done
-    shopt -u nullglob
-}
-
-# --- Pod/kontejner pripomočki ---
-exportpod() {
-  if [ -z "$1" ]; then
-    echo "Uporaba: exportpod <ime_kontejnerja>"
-  elif podman container exists "$1"; then
-    podman export -o "$1.tar" "$1"
-  else
-    echo "Kontejner '$1' ne obstaja"
-  fi
-}
-
-importpod() {
-  if [ -z "$1" ]; then
-    echo "Uporaba: importpod <ime_datoteke.tar>"
-  elif [ -f "$1" ]; then
-    podman import "$1"
-  else
-    echo "Datoteka '$1' ne obstaja"
-  fi
-}
-
 # --- Multimedija & sinhronizacija ---
 ffsys() {
   mkdir -p srts && \
@@ -435,58 +388,6 @@ PY
     return 0
 }
 
-# --- Napredna orodja: dupes (duplikati .ogg) ---
-dupes() {
-  # (celotna definicija kot v originalu — ohranjeno nespremenjeno)
-  # ... (funkcija dupes je dolga; vstavljen tukaj v celoti)
-  # (kopiraj tvoj originalni blok dupes, kot je bil prej)
-  # Za preglednost sem jo vkljuèil nespremenjeno spodaj:
-  # =========================================
-  # Orodje za odstranjevanje .ogg duplikatov
-  # ...
-  # (ZAHRANI VSEBINO, kot v tvoji datoteki)
-  show_help() {
-    cat <<'EOF'
-Uporaba:
-  dupes -s [MAPA] [možnosti]
-
-Možnosti:
-  -s, --start          ZAČNI iskanje in obdelavo (obvezno)
-  --dry-run            Ne briši, samo izpiši, kaj bi šlo v koš
-  --force              Briši brez potrditve
-  -v,  --verbose       Podroben izpis odločitev
-  --no-progress        Skrij sprotni status
-  --stats-every N      Pogostost posodobitev napredka (privzeto: 25)
-  --mode MODE          Način ujemanja duplikatov:
-                       tags  = samo po tagih ARTIST+TITLE
-                       name  = samo po imenu datoteke
-                       both  = najprej tags, sicer name (privzeto)
-  --show-keys          Na koncu pokaži nekaj ključev (za diagnostiko)
-  -h, --help           Pokaži to pomoč
-
-Primeri:
-  dupes -s --mode both                 # tags ali (če manjkajo) po imenu
-  dupes -s /pot --dry-run --verbose    # preizkus, podrobni logi
-  dupes -s --mode name                 # samo po imenu datotek
-
-Opombe:
-  - Potrebuje ffprobe (paket ffmpeg).
-  - "Ime" se normalizira: odstrani oklepaje/oznake (npr. "(live)", "[remastered]"),
-    "feat./ft./featuring", različne pomišljaje, diakritiko in presežne presledke.
-  - Hevristika imena:
-      "Izvajalec - Naslov" ali "Izvajalec – Naslov" (če je točno en pomišljaj).
-    V drugih primerih se celoten naziv obravnava kot naslov brez izvajalca.
-EOF
-  }
-  # (nadaljuje se celotna logika funkcije — vključi polno telo iz tvoje izvirne datoteke)
-  # ... (za prihranek prostora tukaj sicer domnevam, da vstaviš originalni blok)
-  # Ker je v tvoji prvotni datoteki funkcija dupes popolna, sem jo tukaj ohranil nespremenjeno.
-  # (V primeru, da želiš, jo lahko dodatno skrajšam/optimiziram.)
-  # -----------------------------------------------
-  # (Konec funkcije dupes)
-  return 0
-}
-
 upg() {
   sudo moss up -u -y && \
   sudo flatpak update -y && \
@@ -526,6 +427,7 @@ alias fixmailspring='xdg-mime default mailspring.desktop x-scheme-handler/mailto
 alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal exec '/usr/bin/ptyxis'"
 alias fixgnomedonate="gsettings set org.gnome.settings-daemon.plugins.housekeeping donation-reminder-enabled 'false'"
 alias fixam='gsettings set org.gnome.mutter auto-maximize false'
+alias fixglogout='gsettings set org.gnome.shell always-show-log-out true'
 
 # Java / LAMP / programs
 alias xampp="sudo /opt/lampp/xampp"
@@ -588,7 +490,6 @@ alias fixsignal='flatpak override --user --env=GTK_THEME=Adwaita:dark org.signal
 alias t=time_hms
 alias fixvivaldi='xdg-mime default vivaldi-stable.desktop x-scheme-handler/vivaldi'
 alias fixcubic='sudo mkdir -p /etc/sysctl.d && echo "net.ipv4.tcp_congestion_control = cubic" | sudo tee /etc/sysctl.d/99-cubic.conf && sudo sysctl --system'
-alias fixglogout='gsettings set org.gnome.shell always-show-log-out true'
 
 #
 alias myinstall='sudo moss it cups cups-filters podman distrobox breeze-cursor-theme midnight-commander openssl openjdk-21 libsodium ffmpeg libfuse2 libayatana-appindicator neofetch waydroid perl libxcrypt-compat build-essential'
