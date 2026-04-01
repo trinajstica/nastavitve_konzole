@@ -1,1 +1,1 @@
-moj .bashrc za Solus (backup)
+moj .bashrc za AerynOS & Solus (backup)
