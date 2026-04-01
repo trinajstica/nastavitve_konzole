@@ -578,7 +578,8 @@ upg() {
   sudo eopkg rmo -y && \
   sudo eopkg dc -y && \
   sudo eopkg clean -y && \
-  sudo flatpak update -y
+  sudo flatpak update -y && \
+  flatpak update -y
 }
 
 # --- Aliasi (združeno in urejeno) ---
