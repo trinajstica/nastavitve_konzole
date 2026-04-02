@@ -389,7 +389,7 @@ PY
 }
 
 upg() {
-  sudo moss up -u -y && \
+  sudo moss up -y && \
   sudo flatpak update -y && \
   flatpak update -y
 }
@@ -493,3 +493,35 @@ alias fixcubic='sudo mkdir -p /etc/sysctl.d && echo "net.ipv4.tcp_congestion_con
 
 #
 alias myinstall='sudo moss it cups cups-filters podman distrobox breeze-cursor-theme midnight-commander openssl openjdk-21 libsodium ffmpeg libfuse2 libayatana-appindicator neofetch waydroid perl libxcrypt-compat build-essential'
+
+is_in_dolphin() {
+  p=$$
+  while [ "$p" -ne 1 ] 2>/dev/null; do
+    p=$(ps -o ppid= -p "$p" | tr -d ' ')
+    [ -z "$p" ] && break
+    cmd=$(ps -o comm= -p "$p" | tr -d ' ')
+    case "$cmd" in
+      dolphin|dolphin-ephemeral) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+is_in_zed() {
+  case "${TERM_PROGRAM:-}" in *zed*|*Zed*) return 0;; esac
+  env | grep -qi '^ZED' && return 0
+
+  pid=$$
+  while [ -n "$pid" ] && [ "$pid" -ne 1 ]; do
+    ps -o comm= -p "$pid" 2>/dev/null | grep -qi zed && return 0
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ' || true)
+  done
+
+  return 1
+}
+
+if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
+  if ! is_in_dolphin && ! is_in_zed; then
+    command -v fastfetch >/dev/null 2>&1 && fastfetch
+  fi
+fi
