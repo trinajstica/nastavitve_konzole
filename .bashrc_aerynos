@@ -428,6 +428,7 @@ alias fixterminal="gsettings set org.gnome.desktop.default-applications.terminal
 alias fixgnomedonate="gsettings set org.gnome.settings-daemon.plugins.housekeeping donation-reminder-enabled 'false'"
 alias fixam='gsettings set org.gnome.mutter auto-maximize false'
 alias fixglogout='gsettings set org.gnome.shell always-show-log-out true'
+alias fixclipboard='gsettings set org.gnome.desktop.interface gtk-enable-primary-paste true'
 
 # Java / LAMP / programs
 alias xampp="sudo /opt/lampp/xampp"
