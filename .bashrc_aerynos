@@ -526,3 +526,6 @@ if [ -z "$CONTAINER_ID" ] && [ "$TERM_PROGRAM" != "vscode" ]; then
     command -v fastfetch >/dev/null 2>&1 && fastfetch
   fi
 fi
+
+# GDM auto-login alias
+alias gdm-autologin='sudo mkdir -p /etc/gdm && printf "[daemon]\nAutomaticLoginEnable=True\nAutomaticLogin=barko\n" | sudo tee /etc/gdm/custom.conf'
