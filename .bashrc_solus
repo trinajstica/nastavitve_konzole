@@ -639,7 +639,7 @@ alias iotop='sudo iotop -o'
 alias fixeopkg='sudo eopkg rmo; sudo eopkg clean; sudo eopkg delete-cache; sudo eopkg -y rebuild-db; sudo eopkg up'
 alias myinstall_rm='sudo eopkg rm -y thunderbird thunderbird-langpacks celluloid snapshot plasma-browser-integration'
 alias myinstall_dev='sudo eopkg it -y -c system.devel libboost-devel libtorrent-rasterbar-devel android-tools git-lfs ripgrep github-cli pip mkvtoolnix python3-tkinter ccache gdb git linux-current-headers meson ninja gcc pkgconf make upx binutils libadwaita-devel libgtk-4-devel libgtk-3-devel libayatana-appindicator-devel libgtksourceview5-devel libjson-glib-devel sqlite3-devel gstreamer-devel gstreamer-plugins-base-devel libjpeg-turbo-devel libpng-devel glib2-devel libarchive-devel curl-devel libsodium-devel graphene-devel gobject-introspection-devel gettext-devel libgtkmm-4-devel libgtk-3 libgtk-4 libayatana-appindicator gstreamer-plugins-base gstreamer-plugins-good gstreamer-plugins-bad libarchive libjson-glib libjpeg-turbo adwaita-icon-theme glib2 libgtksourceview5 libsodium'
-alias myinstall='sudo eopkg it -y filen-desktop zed vulkan-tools sassc vlc tesseract iotop dconf-editor gnome-connections yt-dlp bibata-cursors extension-manager lutris whois inkscape pear-desktop fonts-installer starship gnome-boxes waydroid gufw xdotool iw enca firejail rhythmbox gnome-disk-utility plocate localsend rsync yarn nodejs filezilla distrobox steam jq mc neofetch sshpass openjdk-21 ffmpeg uchardet git unzip tar xz'
+alias myinstall='sudo eopkg it -y brave filen-desktop zed vulkan-tools sassc vlc tesseract iotop dconf-editor gnome-connections yt-dlp bibata-cursors extension-manager lutris whois inkscape pear-desktop fonts-installer starship gnome-boxes waydroid gufw xdotool iw enca firejail rhythmbox gnome-disk-utility plocate localsend rsync yarn nodejs filezilla distrobox steam jq mc neofetch sshpass openjdk-21 ffmpeg uchardet git unzip tar xz'
 
 # X / GNOME / desktop popravki
 # če si na plasma rabiš tole
@@ -842,13 +842,76 @@ is_in_zed() {
   return 1
 }
 
+# Env oznake znanih AI agentov. Vsak agent jih vstavi v okolje lupin, ki jih
+# požene, da lahko orodja zaznajo "tečem pod agentom".
+# Viri: predlog AGENT/AI_AGENT (agents.md), https://docs.rs/is-ai-agent in
+# interni FREEBUFF_*/CODEBUFF_* spremenljivki Freebuff desktop app + CLI.
+AI_AGENT_ENV_VARS=(
+  AGENT AI_AGENT
+  # Freebuff desktop app (Electron)
+  FREEBUFF_APP_VERSION FREEBUFF_UI_DIR FREEBUFF_DESKTOP_STATE_PATH
+  # Freebuff / Codebuff CLI (binarna različica + npm launcher)
+  FREEBUFF_MODE FREEBUFF_CONFIG_DIR CODEBUFF_LAUNCHER_PID CODEBUFF_CLI_VERSION
+  CODEBUFF_IS_BINARY CODEBUFF_RG_PATH CODEBUFF_WASM_DIR
+  CODEBUFF_TREE_SITTER_WASM_PATH
+  # Claude Code / Cowork / CodeBuddy
+  CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_SESSION_ID CLAUDE_CODE_EXECPATH
+  CODEBUDDY
+  # OpenAI Codex
+  CODEX_APP_TITLE CODEX_THREAD_ID CODEX_SHELL CODEX_SANDBOX CODEX_CI
+  CODEX_SANDBOX_NETWORK_DISABLED
+  # OpenCode, Gemini CLI, Qwen Code, veCLI
+  OPENCODE OPENCODE_TERMINAL OPENCODE_PID GEMINI_CLI QWEN_CODE VECLI_SANDBOX
+  # Cursor, Antigravity, Augment, Cline, Roo Code
+  CURSOR_AGENT CURSOR_TRACE_ID CURSOR_SANDBOX CURSOR_EXTENSION_HOST_ROLE
+  ANTIGRAVITY_AGENT AUGMENT_AGENT CLINE_ACTIVE ROO_CODE_TASK_ID
+  # Copilot, TRAE, Amp, Crush, iFlow, Grok, Warp, Pi, Kiro, Firebender, Goose,
+  # Replit
+  COPILOT_AGENT COPILOT_CLI TRAE_AI_SHELL_ID AMP_CURRENT_THREAD_ID CRUSH
+  IFLOW_CLI GROK_AGENT OZ_RUN_ID PI_CODING_AGENT KIRO_AGENT_PATH
+  FIREBENDER_TERMINAL GOOSE_TERMINAL REPL_ID
+)
+
+# Zaznaj lupino, ki jo je pognal AI agent (Freebuff, Claude Code, Codex, ...).
+is_in_ai_agent() {
+  local v pid cmd
+
+  for v in "${AI_AGENT_ENV_VARS[@]}"; do
+    [ -n "${!v:-}" ] && return 0
+  done
+
+  # OpenHands svoj prompt označi v PS1/PROMPT_COMMAND
+  case "${PS1:-}${PROMPT_COMMAND:-}" in
+    *'###PS1JSON###'*) return 0 ;;
+  esac
+
+  # Rezerva: poglej imena procesov v procesnem drevesu (npr. ko lupino požene
+  # sam agent, okolja pa ne označi).
+  pid=$$
+  while [ -n "$pid" ] && [ "$pid" -ne 1 ] 2>/dev/null; do
+    cmd=$(ps -o comm= -p "$pid" 2>/dev/null | tr -d ' ')
+    case "$cmd" in
+      *freebuff*|*codebuff*|claude*|cowork*|codex*|opencode*|gemini*|qwen*|crush*|goose*|droid*|aider*|roo-code*|trae*|devin*|iflow*|grok*|kiro*|openhands*|augment*|antigravity*|cline*|cursor-agent*|cursor_cli*) return 0 ;;
+    esac
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+  done
+
+  return 1
+}
+
+# Neofetch ima smisel samo v pravi interaktivni lupini, ki jo odpre človek.
+# Agentna orodja poganjajo "bash -l -c ...", kjer $- nima zastavice i.
+is_interactive_shell() {
+  case $- in
+    *i*) return 0 ;;
+  esac
+  return 1
+}
+
 if [ -z "${CONTAINER_ID:-}" ] \
 && [ "${TERM_PROGRAM:-}" != "vscode" ] \
-&& [ -z "${CODEX_APP_TITLE:-}" ] \
-&& [ -z "${CODEX_THREAD_ID:-}" ] \
-&& [ -z "${CODEX_SHELL:-}" ] \
-&& [ -z "${OPENCODE:-}" ] \
-&& [ -z "${OPENCODE_TERMINAL:-}" ]; then
+&& is_interactive_shell \
+&& ! is_in_ai_agent; then
     if ! is_in_dolphin && ! is_in_zed; then
         command -v neofetch >/dev/null 2>&1 && neofetch
     fi
@@ -923,3 +986,4 @@ EOF
 }
 alias fixferdium='flatpak kill org.ferdium.Ferdium 2>/dev/null; flatpak update --user --commit=c5d0c05b123a78e788e8f2e9e57c8f1de5eab8ff5665e2cc10961449af9623ae -y org.ferdium.Ferdium && flatpak mask --user org.ferdium.Ferdium'
 alias unfixferdium='flatpak kill org.ferdium.Ferdium 2>/dev/null; flatpak mask --user --remove org.ferdium.Ferdium && flatpak update --user -y org.ferdium.Ferdium'
+alias checkpwproblem='f="/tmp/checkpwproblem-$(date +%Y%m%d-%H%M%S).log"; { echo "=== DATE ==="; date; echo "=== USER ==="; id; echo "=== PASSWD ==="; sudo passwd -S "$USER"; echo "=== CHAGE ==="; sudo chage -l "$USER" | grep -E "Last password change|Password expires|Password inactive|Account expires"; echo "=== SHADOW STATUS ==="; sudo awk -F: -v u="$USER" '\''$1==u {print "User:",$1,"Last-change:",$3,"Min:",$4,"Max:",$5,"Warn:",$6,"Inactive:",$7,"Expire:",$8}'\'' /etc/shadow; echo "=== RTW88 STATUS ==="; lsmod | grep -E "^rtw(_|88)" || true; echo "=== RTW88 MODULES ==="; modinfo rtw88_8812au rtw88_usb rtw88_core 2>&1 | grep -E "^(filename|version|firmware|vermagic):" || true; echo "=== RTW88 CONFIG ==="; sudo grep -vE "^[[:space:]]*(#|$)" /etc/modprobe.d/rtw88.conf 2>/dev/null || true; echo "=== KERNEL ==="; uname -a; echo "=== KERNEL/FIRMWARE ERRORS ==="; sudo journalctl -b -k | grep -Ei "rtw88|rtw_|firmware|module|taint|error|fail" || true; echo "=== RTW88 JOURNAL ==="; sudo journalctl -b | grep -Ei "rtw88|rtw_" || true; echo "=== CHANGES SINCE BOOT ==="; sudo journalctl --since="$(uptime -s)" | grep -Ei "rtw88|rtw_|firmware|module|pam|auth|passwd|shadow|sudo" || true; echo "=== EOPKG SHADOW/PAM/LOGIN ==="; sudo eopkg history | grep -B2 -A8 -Ei "(^|[ *])((shadow|pam|login)([-_]|[[:space:]])|shadow |pam |login )" || true; echo "=== EOPKG KERNEL/RTW88 ==="; sudo eopkg history | grep -B2 -A8 -Ei "linux|firmware|rtw88|kernel" | tail -n 250 || true; } 2>&1 | tee "$f"; echo; echo "LOG: $f"'
